@@ -184,10 +184,10 @@ printGhcSetupInfo indent info = do
       Sha1Sum sha1 = ghcSetupInfoSha1 info
       indentText = Text.replicate indent " "
   putStrLn $ indentText <> arch <> ":"
-  putStrLn $ indentText <> "  " <> ver <> ":"
-  putStrLn $ indentText <> "    url: " <> url
-  putStrLn $ indentText <> "    sha1: " <> sha1
-  putStrLn $ indentText <> "    sha256: " <> sha256
+  putStrLn $ indentText <> "    " <> ver <> ":"
+  putStrLn $ indentText <> "        url: \"" <> url <> "\""
+  putStrLn $ indentText <> "        sha1: " <> sha1
+  putStrLn $ indentText <> "        sha256: " <> sha256
 
 -- Decomissioned
 maybePrintExtraInfo :: Int -> [GhcSetupInfo] -> IO ()
