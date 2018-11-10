@@ -1,0 +1,14 @@
+name: stack-setup-info-gen
+version: 0.0.0
+
+dependencies:
+- base
+- bytestring
+- classy-prelude
+- http-conduit
+- text
+- containers
+
+executables:
+  setup-info-gen:
+    main: setup-info-gen.hs
