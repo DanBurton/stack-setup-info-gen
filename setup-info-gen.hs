@@ -1,23 +1,24 @@
--- usage: stack run
--- modify the baseUrl and ghcVersion, ghcDateVersion to taste
--- Or, for release versions of ghc:
--- stack run -- ghc-8.6.2
-
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-module Main where
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# OPTIONS_GHC -Wall #-}
+module Main (main) where
+
+-- usage: stack run
+-- Modify the hard-coded baseUrl and ghcVersion, ghcDateVersion to taste.
+-- Or, for release versions of ghc, this should work:
+-- stack run -- ghc-8.6.2
 
 import Data.Semigroup ((<>))
 
 import ClassyPrelude
-import qualified Data.ByteString.Char8 as C8
-import qualified Data.Foldable as F
 import qualified Network.HTTP.Simple as HTTP
-import qualified System.IO as Sys
+-- TODO: use this again
+-- import qualified System.IO as Sys
 import qualified Data.Text as Text
-import qualified Data.Text.IO as TIO
+-- TODO: use this again
+-- import qualified Data.Text.IO as TIO
 import qualified Data.Map as Map
 import qualified System.Environment as Environment
 
@@ -32,30 +33,30 @@ data GhcSetupInfo = GhcSetupInfo
   , ghcSetupInfoContentLength :: ContentLength
   , ghcSetupInfoSha256 :: Sha256Sum
   , ghcSetupInfoSha1 :: Sha1Sum
-  }
-  deriving (Show)
+  } deriving (Eq, Ord, Show)
 
-newtype GhcDateVersion = GhcDateVersion { ghcDateVersionText :: Text }
-newtype BaseUrl = BaseUrl { baseUrlText :: Text}
-  deriving (IsString)
+newtype GhcDateVersion = GhcDateVersion Text
+  deriving (Eq, IsString, Ord, Show)
+newtype BaseUrl = BaseUrl Text
+  deriving (Eq, IsString, Ord, Show)
 newtype GhcVersion = GhcVersion Text
-  deriving (Show)
-newtype Arch = Arch { archText :: Text }
-  deriving (Eq, IsString, Show)
+  deriving (Eq, IsString, Ord, Show)
+newtype Arch = Arch Text
+  deriving (Eq, IsString, Ord, Show)
 newtype Url = Url Text
-  deriving (Eq, Show, IsString)
+  deriving (Eq, IsString, Ord, Show)
 newtype Sha256Sum = Sha256Sum Text
-  deriving (Show)
+  deriving (Eq, IsString, Ord, Show)
 newtype Sha1Sum = Sha1Sum Text
-  deriving (Show)
-newtype RelativePath = RelativePath { relativePathText :: Text }
-  deriving (Show, Eq, Ord)
-newtype FileName = FileName { fileNameText :: Text }
-  deriving (Eq, IsString)
+  deriving (Eq, IsString, Ord, Show)
+newtype RelativePath = RelativePath Text
+  deriving (Eq, IsString, Ord, Show)
+newtype FileName = FileName Text
+  deriving (Eq, IsString, Ord, Show)
 newtype SystemName = SystemName Text
-  deriving (Eq, IsString)
+  deriving (Eq, IsString, Ord, Show)
 newtype ContentLength = ContentLength Int
-  deriving (Eq, Show)
+  deriving (Eq, Ord, Show)
 
 shouldSkipFile :: FileName -> Bool
 shouldSkipFile "src" = True
@@ -87,22 +88,19 @@ urlCorrection "https://downloads.haskell.org/~ghc/8.6.2/ghc-8.6.2-x86_64-darwin.
   = "https://downloads.haskell.org/~ghc/8.6.2/ghc-8.6.2-x86_64-apple-darwin.tar.xz"
 urlCorrection a = a
 
-ghcSetupInfoUrlCorrection :: GhcSetupInfo -> GhcSetupInfo
-ghcSetupInfoUrlCorrection info = info
-  { ghcSetupInfoUrl = urlCorrection (ghcSetupInfoUrl info) }
-
 -- TODO: generalize?
 stripSurroundings :: GhcDateVersion -> RelativePath -> FileName
-stripSurroundings (GhcDateVersion ghcDateVersion) =
+stripSurroundings (GhcDateVersion ghcDateVersion) (RelativePath relPath) =
     FileName
   . reverse
   . drop (textLength ".tar.xz")
   . reverse
   . drop (textLength $ "./" <> ghcDateVersion <> "-")
-  . relativePathText
+  $ relPath
 
-err :: Text -> IO ()
-err s = TIO.hPutStrLn Sys.stderr ("***** " <> s)
+-- TODO: use this again
+-- err :: Text -> IO ()
+-- err s = TIO.hPutStrLn Sys.stderr ("***** " <> s)
 
 textLength :: Text -> Int
 textLength = length
@@ -144,6 +142,7 @@ loadSha256s = loadShas "SHA256SUMS" Sha256Sum
 loadSha1s :: BaseUrl -> IO (Map RelativePath Sha1Sum)
 loadSha1s = loadShas "SHA1SUMS" Sha1Sum
 
+-- TODO: warn about errors, gracefully degrade rather than fatally crash
 loadGhcSetupInfo :: GhcDateVersion -> GhcVersion -> BaseUrl -> IO [GhcSetupInfo]
 loadGhcSetupInfo ghcDateVersion ghcVersion baseUrl = do
   sha1s <- loadSha1s baseUrl
@@ -154,8 +153,8 @@ loadGhcSetupInfo ghcDateVersion ghcVersion baseUrl = do
         FileForArch arch -> do
           sha1 <- case Map.lookup relPath sha1s of
             Just s -> pure s
-            Nothing -> fail $ "Missing sha1 for file: " <> unpack (relativePathText relPath)
-          let url = toUrl baseUrl relPath
+            Nothing -> fail $ "Missing sha1 for file: " <> relPathStr
+          let url = urlCorrection $ toUrl baseUrl relPath
           contentLength <- discoverContentLength url
           pure $ Just $ GhcSetupInfo
             { ghcSetupInfoArch = arch
@@ -166,11 +165,13 @@ loadGhcSetupInfo ghcDateVersion ghcVersion baseUrl = do
             , ghcSetupInfoSha1 = sha1
             }
         UnrecognizedFileName -> fail $
-          "Encountered unrecognized file name: " <> unpack (relativePathText relPath)
+          "Encountered unrecognized file name: " <> relPathStr
         where
+          relPathStr = unpack relPathText
+          (RelativePath relPathText) = relPath
           file = stripSurroundings ghcDateVersion relPath
   parseInfoMaybes <- mapM parseInfo $ Map.toAscList sha256s
-  pure $ map ghcSetupInfoUrlCorrection $ catMaybes parseInfoMaybes
+  pure $ catMaybes parseInfoMaybes
 
 printGhcSetupInfo :: Int -> GhcSetupInfo -> IO ()
 printGhcSetupInfo indent info = do
@@ -222,6 +223,8 @@ main = do
               , GhcVersion $ pack $ drop 4 ghcVerStr
               , BaseUrl $ "https://downloads.haskell.org/~ghc/" <> pack (drop 4 ghcVerStr) <> "/"
               )
+        -- TODO: above: try to discover GhcDateVersion when given a beta or RC version
+        -- TODO: try to discover "latest"
         _ -> ( GhcDateVersion "ghc-8.6.2"
              , GhcVersion "8.6.2"
              , BaseUrl "https://downloads.haskell.org/~ghc/8.6.2/"
