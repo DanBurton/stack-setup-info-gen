@@ -21,15 +21,6 @@ import qualified Data.Text.IO as TIO
 import qualified Data.Map as Map
 import qualified System.Environment as Environment
 
--- baseUrl :: Text
--- baseUrl = "https://downloads.haskell.org/~ghc/8.6.2/"
-
--- ghcDateVersion :: Text
--- ghcDateVersion = "ghc-8.6.2"
-
--- ghcVersion :: GhcVersion
--- ghcVersion = GhcVersion $ (drop (textLength "ghc-") ghcDateVersion)
-
 toUrl :: BaseUrl -> RelativePath -> Url
 toUrl (BaseUrl baseUrl) (RelativePath relPathText) = Url $
   baseUrl <> drop (textLength "./") relPathText
@@ -38,6 +29,7 @@ data GhcSetupInfo = GhcSetupInfo
   { ghcSetupInfoArch :: Arch
   , ghcSetupInfoVersion :: GhcVersion
   , ghcSetupInfoUrl :: Url
+  , ghcSetupInfoContentLength :: ContentLength
   , ghcSetupInfoSha256 :: Sha256Sum
   , ghcSetupInfoSha1 :: Sha1Sum
   }
@@ -62,6 +54,8 @@ newtype FileName = FileName { fileNameText :: Text }
   deriving (Eq, IsString)
 newtype SystemName = SystemName Text
   deriving (Eq, IsString)
+newtype ContentLength = ContentLength Int
+  deriving (Eq, Show)
 
 shouldSkipFile :: FileName -> Bool
 shouldSkipFile "src" = True
@@ -97,7 +91,7 @@ ghcSetupInfoUrlCorrection :: GhcSetupInfo -> GhcSetupInfo
 ghcSetupInfoUrlCorrection info = info
   { ghcSetupInfoUrl = urlCorrection (ghcSetupInfoUrl info) }
 
--- TODO: generalize
+-- TODO: generalize?
 stripSurroundings :: GhcDateVersion -> RelativePath -> FileName
 stripSurroundings (GhcDateVersion ghcDateVersion) =
     FileName
@@ -161,10 +155,13 @@ loadGhcSetupInfo ghcDateVersion ghcVersion baseUrl = do
           sha1 <- case Map.lookup relPath sha1s of
             Just s -> pure s
             Nothing -> fail $ "Missing sha1 for file: " <> unpack (relativePathText relPath)
+          let url = toUrl baseUrl relPath
+          contentLength <- discoverContentLength url
           pure $ Just $ GhcSetupInfo
             { ghcSetupInfoArch = arch
             , ghcSetupInfoVersion = ghcVersion
-            , ghcSetupInfoUrl = toUrl baseUrl relPath
+            , ghcSetupInfoUrl = url
+            , ghcSetupInfoContentLength = contentLength
             , ghcSetupInfoSha256 = sha256
             , ghcSetupInfoSha1 = sha1
             }
@@ -180,33 +177,16 @@ printGhcSetupInfo indent info = do
   let Arch arch = ghcSetupInfoArch info
       Url url = ghcSetupInfoUrl info
       GhcVersion ver = ghcSetupInfoVersion info
+      ContentLength contentLength = ghcSetupInfoContentLength info
       Sha256Sum sha256 = ghcSetupInfoSha256 info
       Sha1Sum sha1 = ghcSetupInfoSha1 info
       indentText = Text.replicate indent " "
   putStrLn $ indentText <> arch <> ":"
   putStrLn $ indentText <> "    " <> ver <> ":"
   putStrLn $ indentText <> "        url: \"" <> url <> "\""
+  putStrLn $ indentText <> "        content-length: " <> tshow contentLength
   putStrLn $ indentText <> "        sha1: " <> sha1
   putStrLn $ indentText <> "        sha256: " <> sha256
-
--- Decomissioned
-maybePrintExtraInfo :: Int -> [GhcSetupInfo] -> IO ()
-maybePrintExtraInfo indent ghcSetupInfos = do
-  let srcArch = "linux64-tinfo6" :: Arch
-      destArch = "linux64-tinfo6-nopie" :: Arch
-  let isDupeSrc info = ghcSetupInfoArch info == srcArch
-      isDupeDest info = ghcSetupInfoArch info == destArch
-      extraInfo = case find isDupeSrc ghcSetupInfos of
-        Just srcInfo -> case find isDupeDest ghcSetupInfos of
-          Nothing -> Just $ srcInfo { ghcSetupInfoArch = destArch }
-          Just _ -> Nothing
-        Nothing -> Nothing
-  case extraInfo of
-    Just i -> do
-      let indentText = Text.replicate indent " "
-      putStrLn $ indentText <> "# not needed for stack-1.7+; copy of " <> archText srcArch
-      printGhcSetupInfo indent i
-    Nothing -> pure ()
 
 printCoda :: GhcDateVersion -> IO ()
 printCoda (GhcDateVersion ghcDateVersion) = do
@@ -215,6 +195,21 @@ printCoda (GhcDateVersion ghcDateVersion) = do
   putStrLn $ "compiler: " <> ghcDateVersion
   putStrLn "compiler-check: match-exact"
   putStrLn "packages: []"
+
+discoverContentLength :: Url -> IO ContentLength
+discoverContentLength (Url url) = do
+  req0 <- HTTP.parseRequest (unpack url)
+  let req = HTTP.setRequestMethod "HEAD" req0
+  res <- HTTP.httpBS req
+  -- TODO: ensure a 200 response, otherwise content-length could be wrong
+  -- TODO: retries
+  contentLengthText <- case map decodeUtf8 (HTTP.getResponseHeader "content-length" res) of
+    [r] -> pure r
+    [] -> fail $ "Expected to find content-length in headers for url: " <> (unpack url)
+    _ -> fail $ "Too many content-length headers for url: " <> (unpack url)
+  case readMay contentLengthText of
+    Just contentLengthInt -> pure $ ContentLength contentLengthInt
+    Nothing -> fail $ "Could not parse to int: " <> unpack contentLengthText
 
 main :: IO ()
 main = do
@@ -231,57 +226,9 @@ main = do
              , GhcVersion "8.6.2"
              , BaseUrl "https://downloads.haskell.org/~ghc/8.6.2/"
              )
-  -- let ghcDateVersion = GhcDateVersion "ghc-8.6.2"
-  --     ghcVersion = GhcVersion "8.6.2"
-  --     baseUrl = BaseUrl "https://downloads.haskell.org/~ghc/8.6.2/"
   ghcSetupInfos <- loadGhcSetupInfo ghcDateVersion ghcVersion baseUrl
   putStrLn "setup-info:"
   putStrLn "  ghc:"
   mapM_ (printGhcSetupInfo 4) ghcSetupInfos
   printCoda ghcDateVersion
   pure ()
-
-
--- the old, deprecated way
-main1 :: IO ()
-main1 = do
-  let ghcDateVersion = GhcDateVersion "ghc-8.6.2"
-      ghcVersion = GhcVersion "8.6.2"
-      baseUrl = BaseUrl "https://downloads.haskell.org/~ghc/8.6.2/"
-  req <- HTTP.parseRequest (unpack (baseUrlText baseUrl) <> "/SHA256SUMS")
-  res <- HTTP.httpBS req
-
-  putStrLn "setup-info:"
-  putStrLn "  ghc:"
-  let textBody = decodeUtf8 $ HTTP.getResponseBody $ res
-  F.for_ (Text.lines textBody) $ \line -> case Text.words line of
-    [sha256Text, pathText] -> do
-      let path = RelativePath pathText
-          file = stripSurroundings ghcDateVersion path
-          sha256 = Sha256Sum sha256Text
-      case parseSystemName file of
-        -- I don't really understand this special case
-        -- but it seems like these two fedora cases use the same tarball
-        FileForArch "linux64-tinfo-nopie" -> do
-          printSection ghcDateVersion baseUrl "linux64-tinfo" path sha256
-          printSection ghcDateVersion baseUrl "linux64-tinfo-nopie" path sha256
-        FileForArch target -> do
-          printSection ghcDateVersion baseUrl target path sha256
-        UnrecognizedFileName -> do
-            err $ "Failed system name lookup: " <> fileNameText file
-        ShouldSkipFile -> return ()
-    _ -> err $ "Unexpected line: " <> line
-
-  putStrLn ""
-  putStrLn $ "resolver: " <> ghcDateVersionText ghcDateVersion
-  putStrLn $ "compiler: " <> ghcDateVersionText ghcDateVersion
-  putStrLn "compiler-check: match-exact"
-  putStrLn "packages: []"
-
--- Also the old, deprecated way
-printSection :: GhcDateVersion -> BaseUrl -> Arch -> RelativePath -> Sha256Sum -> IO ()
-printSection (GhcDateVersion ghcDateVersion) (BaseUrl baseUrl) (Arch target) (RelativePath path) (Sha256Sum sha256) = do
-  putStrLn $ "    " <> target <> ":"
-  putStrLn $ "      " <> (drop (textLength "ghc-") ghcDateVersion) <> ":"
-  putStrLn $ "        url: " <> baseUrl <> drop (textLength "./") path
-  putStrLn $ "        sha256: " <> sha256
