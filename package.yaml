@@ -9,6 +9,11 @@ dependencies:
 - text
 - containers
 
+library:
+  source-dirs: src
+
 executables:
   setup-info-gen:
-    main: setup-info-gen.hs
+    source-dirs: app
+    main: Main.hs
+    dependencies: stack-setup-info-gen
