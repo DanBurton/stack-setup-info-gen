@@ -5,7 +5,8 @@ dependencies:
 - base
 - bytestring
 - classy-prelude
-- http-conduit
+- http-client
+- http-client-tls
 - text
 - containers
 

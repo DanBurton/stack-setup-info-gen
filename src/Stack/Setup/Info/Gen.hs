@@ -12,12 +12,14 @@ module Stack.Setup.Info.Gen (mainWithArgs) where
 import Data.Semigroup ((<>))
 
 import ClassyPrelude
-import qualified Network.HTTP.Simple as HTTP
+import qualified Network.HTTP.Client as Client
+import qualified Network.HTTP.Client.TLS as TLS
 -- TODO: use this again
 -- import qualified System.IO as Sys
 -- TODO: use this again
 -- import qualified Data.Text.IO as TIO
 import qualified Data.Map as Map
+import Control.Concurrent (threadDelay)
 
 toUrl :: BaseUrl -> RelativePath -> Url
 toUrl (BaseUrl baseUrl) (RelativePath relPathText) = Url $
@@ -122,39 +124,47 @@ parseSystemName fileName
 newtype ShaFile = ShaFile Text
   deriving (IsString)
 
-loadShas :: ShaFile -> (Text -> shaSum) -> BaseUrl -> IO (Map RelativePath shaSum)
-loadShas (ShaFile shaFile) mkSha (BaseUrl baseUrl) = do
-  req <- HTTP.parseRequest $ unpack $ baseUrl <> "/" <> shaFile
-  res <- HTTP.httpBS req
-  let textBody = decodeUtf8 $ HTTP.getResponseBody $ res
+loadShas :: ShaFile -> (Text -> shaSum) -> BaseUrl -> Client.Manager -> IO (Map RelativePath shaSum)
+loadShas (ShaFile shaFile) mkSha (BaseUrl baseUrl) manager = do
+  req <- Client.parseRequest $ unpack $ baseUrl <> "/" <> shaFile
+  res <- politelyRequest Client.httpLbs req manager
+  let textBody = decodeUtf8 $ Client.responseBody $ res
       bodyLines = lines textBody
   pairs <- mapM lineToShaPair bodyLines
   pure $ Map.fromList pairs
   where
     lineToShaPair line = case words line of
-      [shaText, pathText] -> pure (RelativePath pathText, mkSha shaText)
+      [shaText, pathText] -> pure
+        ( RelativePath $ toStrict pathText
+        , mkSha $ toStrict shaText
+        )
       _ -> fail $ "SHA file line was not in expected format"
 
-loadSha256s :: BaseUrl -> IO (Map RelativePath Sha256Sum)
+loadSha256s :: BaseUrl -> Client.Manager -> IO (Map RelativePath Sha256Sum)
 loadSha256s = loadShas "SHA256SUMS" Sha256Sum
 
-loadSha1s :: BaseUrl -> IO (Map RelativePath Sha1Sum)
+loadSha1s :: BaseUrl -> Client.Manager -> IO (Map RelativePath Sha1Sum)
 loadSha1s = loadShas "SHA1SUMS" Sha1Sum
 
 -- TODO: warn about errors, gracefully degrade rather than fatally crash
-loadGhcSetupInfo :: GhcVersion -> BaseUrl -> IO [GhcSetupInfo]
-loadGhcSetupInfo ghcVersion baseUrl = do
-  sha1s <- loadSha1s baseUrl
-  sha256s <- loadSha256s baseUrl
+loadGhcSetupInfo :: GhcVersion -> BaseUrl -> Client.Manager -> IO [GhcSetupInfo]
+loadGhcSetupInfo ghcVersion baseUrl manager = do
+  logg "loading sha1s"
+  sha1s <- loadSha1s baseUrl manager
+  logg "loading sha256s"
+  sha256s <- loadSha256s baseUrl manager
   let parseInfo :: (RelativePath, Sha256Sum) -> IO (Maybe GhcSetupInfo)
       parseInfo (relPath, sha256) = case parseSystemName file of
         ShouldSkipFile -> pure $ Nothing
         FileForArch arch -> do
           sha1 <- case Map.lookup relPath sha1s of
             Just s -> pure s
-            Nothing -> fail $ "Missing sha1 for file: " <> relPathStr
+            Nothing -> tfail $ "Missing sha1 for file: " <> relPathText
           let url = urlCorrection $ toUrl baseUrl relPath
-          contentLength <- discoverContentLength url
+              Url urlText = url
+          logg $ "discovering contentLength for " <> urlText
+          contentLength <- discoverContentLength url manager
+          logg $ "finished for " <> relPathText
           pure $ Just $ GhcSetupInfo
             { ghcSetupInfoArch = arch
             , ghcSetupInfoGhcVersion = ghcVersion
@@ -163,10 +173,9 @@ loadGhcSetupInfo ghcVersion baseUrl = do
             , ghcSetupInfoSha256 = sha256
             , ghcSetupInfoSha1 = sha1
             }
-        UnrecognizedFileName -> fail $
-          "Encountered unrecognized file name: " <> relPathStr
+        UnrecognizedFileName -> tfail $
+          "Encountered unrecognized file name: " <> relPathText
         where
-          relPathStr = unpack relPathText
           (RelativePath relPathText) = relPath
           file = stripSurroundings ghcVersion relPath
   parseInfoMaybes <- mapM parseInfo $ Map.toAscList sha256s
@@ -196,17 +205,18 @@ printCoda (GhcVersion ghcVersion) = do
   putStrLn "compiler-check: match-exact"
   putStrLn "packages: []"
 
-discoverContentLength :: Url -> IO ContentLength
-discoverContentLength (Url url) = do
-  req0 <- HTTP.parseRequest (unpack url)
-  let req = HTTP.setRequestMethod "HEAD" req0
-  res <- HTTP.httpBS req
+-- TODO: just scrape the HTML page listing the files instead?
+discoverContentLength :: Url -> Client.Manager -> IO ContentLength
+discoverContentLength (Url url) manager = do
+  req0 <- Client.parseRequest $ unpack url
+  let req = req0 { Client.method = "HEAD" }
+  res <- politelyRequest Client.httpNoBody req manager
   -- TODO: ensure a 200 response, otherwise content-length could be wrong
   -- TODO: retries
-  contentLengthText <- case map decodeUtf8 (HTTP.getResponseHeader "content-length" res) of
-    [r] -> pure r
-    [] -> fail $ "Expected to find content-length in headers for url: " <> (unpack url)
-    _ -> fail $ "Too many content-length headers for url: " <> (unpack url)
+  let headers = Client.responseHeaders res
+  contentLengthText <- case lookup "content-length" headers of
+    Just r -> pure $ decodeUtf8 r
+    Nothing -> fail $ "Too many content-length headers for url: " <> (unpack url)
   case readMay contentLengthText of
     Just contentLengthInt -> pure $ ContentLength contentLengthInt
     Nothing -> fail $ "Could not parse to int: " <> unpack contentLengthText
@@ -258,8 +268,9 @@ mainWithArgs args = do
   verArg <- case args of
     [arg] -> pure arg
     _ -> fail $ "Too many args, expected only 1, got this: " <> show args
+  manager <- TLS.newTlsManager
   (ghcVersion, baseUrl) <- guessGhcVerReps verArg
-  ghcSetupInfos <- loadGhcSetupInfo ghcVersion baseUrl
+  ghcSetupInfos <- loadGhcSetupInfo ghcVersion baseUrl manager
   putStrLn "# This file was generated by a script:"
   putStrLn "# https://github.com/DanBurton/stack-setup-info-gen/blob/master/setup-info-gen.hs"
   putStrLn "setup-info:"
@@ -267,3 +278,15 @@ mainWithArgs args = do
   mapM_ (printGhcSetupInfo 4) ghcSetupInfos
   printCoda ghcVersion
   pure ()
+
+politelyRequest
+  :: (Client.Request -> Client.Manager -> IO a)
+  -> (Client.Request -> Client.Manager -> IO a)
+politelyRequest doReq r m = do
+  threadDelay 100000 -- politely wait 0.1s between requests
+  doReq r m
+
+
+logg :: Text -> IO ()
+-- logg = putStrLn -- TODO stderr
+logg _ = pure ()
