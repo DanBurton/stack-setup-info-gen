@@ -1,6 +1,12 @@
 name: stack-setup-info-gen
 version: 0.0.0
 
+default-extensions:
+- OverloadedStrings
+- NoImplicitPrelude
+- GeneralizedNewtypeDeriving
+- LambdaCase
+
 dependencies:
 - base
 - bytestring
