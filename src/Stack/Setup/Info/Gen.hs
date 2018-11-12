@@ -4,10 +4,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Stack.Setup.Info.Gen (mainWithArgs) where
 
--- usage: stack run
--- Modify the hard-coded baseUrl and ghcVersion, ghcDateVersion to taste.
--- Or, for release versions of ghc, this should work:
--- stack run -- ghc-8.6.2
+-- TODO: move usage
+-- usage: stack run ghc-8.6.1-beta1
 
 import Data.Semigroup ((<>))
 
@@ -19,11 +17,9 @@ import qualified Network.HTTP.Client.TLS as TLS
 -- TODO: use this again
 -- import qualified Data.Text.IO as TIO
 import qualified Data.Map as Map
-import Control.Concurrent (threadDelay)
 
-toUrl :: BaseUrl -> RelativePath -> Url
-toUrl (BaseUrl baseUrl) (RelativePath relPathText) = Url $
-  baseUrl <> drop (length $ asText "./") relPathText
+import Stack.Setup.Info.Types
+import Stack.Setup.Info.Fetch
 
 data GhcSetupInfo = GhcSetupInfo
   { ghcSetupInfoArch :: Arch
@@ -33,29 +29,6 @@ data GhcSetupInfo = GhcSetupInfo
   , ghcSetupInfoSha256 :: Sha256Sum
   , ghcSetupInfoSha1 :: Sha1Sum
   } deriving (Eq, Ord, Show)
-
-newtype GhcDateVersion = GhcDateVersion Text
-  deriving (Eq, IsString, Ord, Show)
-newtype BaseUrl = BaseUrl Text
-  deriving (Eq, IsString, Ord, Show)
-newtype GhcVersion = GhcVersion Text
-  deriving (Eq, IsString, Ord, Show)
-newtype Arch = Arch Text
-  deriving (Eq, IsString, Ord, Show)
-newtype Url = Url Text
-  deriving (Eq, IsString, Ord, Show)
-newtype Sha256Sum = Sha256Sum Text
-  deriving (Eq, IsString, Ord, Show)
-newtype Sha1Sum = Sha1Sum Text
-  deriving (Eq, IsString, Ord, Show)
-newtype RelativePath = RelativePath Text
-  deriving (Eq, IsString, Ord, Show)
-newtype FileName = FileName Text
-  deriving (Eq, IsString, Ord, Show)
-newtype SystemName = SystemName Text
-  deriving (Eq, IsString, Ord, Show)
-newtype ContentLength = ContentLength Int
-  deriving (Eq, Ord, Show)
 
 shouldSkipFile :: FileName -> Bool
 shouldSkipFile "src" = True
@@ -99,13 +72,6 @@ stripSurroundings (GhcVersion ghcVersion) (RelativePath relPath) =
 -- err :: Text -> IO ()
 -- err s = TIO.hPutStrLn Sys.stderr ("***** " <> s)
 
--- like stripPrefix, but without enforcing that it is actually a prefix
-dropPrefixLength :: Text -> Text -> Text
-dropPrefixLength prefix t = drop (length prefix) t
-
-dropSuffixLength :: Text -> Text -> Text
-dropSuffixLength suffix = reverse . dropPrefixLength suffix . reverse
-
 asSystemName :: FileName -> SystemName
 asSystemName (FileName fn) = SystemName fn
 
@@ -121,38 +87,15 @@ parseSystemName fileName
       Just arch -> FileForArch arch
       Nothing -> UnrecognizedFileName
 
-newtype ShaFile = ShaFile Text
-  deriving (IsString)
-
-loadShas :: ShaFile -> (Text -> shaSum) -> BaseUrl -> Client.Manager -> IO (Map RelativePath shaSum)
-loadShas (ShaFile shaFile) mkSha (BaseUrl baseUrl) manager = do
-  req <- Client.parseRequest $ unpack $ baseUrl <> "/" <> shaFile
-  res <- politelyRequest Client.httpLbs req manager
-  let textBody = decodeUtf8 $ Client.responseBody $ res
-      bodyLines = lines textBody
-  pairs <- mapM lineToShaPair bodyLines
-  pure $ Map.fromList pairs
-  where
-    lineToShaPair line = case words line of
-      [shaText, pathText] -> pure
-        ( RelativePath $ toStrict pathText
-        , mkSha $ toStrict shaText
-        )
-      _ -> fail $ "SHA file line was not in expected format"
-
-loadSha256s :: BaseUrl -> Client.Manager -> IO (Map RelativePath Sha256Sum)
-loadSha256s = loadShas "SHA256SUMS" Sha256Sum
-
-loadSha1s :: BaseUrl -> Client.Manager -> IO (Map RelativePath Sha1Sum)
-loadSha1s = loadShas "SHA1SUMS" Sha1Sum
-
 -- TODO: warn about errors, gracefully degrade rather than fatally crash
-loadGhcSetupInfo :: GhcVersion -> BaseUrl -> Client.Manager -> IO [GhcSetupInfo]
-loadGhcSetupInfo ghcVersion baseUrl manager = do
+loadGhcSetupInfo :: GhcVersion -> GhcDisplayVersion -> Client.Manager -> IO [GhcSetupInfo]
+loadGhcSetupInfo ghcVersion ghcDisplayVersion manager = do
   logg "loading sha1s"
-  sha1s <- loadSha1s baseUrl manager
+  sha1s <- loadSha1s ghcDisplayVersion manager
   logg "loading sha256s"
-  sha256s <- loadSha256s baseUrl manager
+  sha256s <- loadSha256s ghcDisplayVersion manager
+  logg "loading contentLengths"
+  contentLengths <- loadContentLengths ghcDisplayVersion manager
   let parseInfo :: (RelativePath, Sha256Sum) -> IO (Maybe GhcSetupInfo)
       parseInfo (relPath, sha256) = case parseSystemName file of
         ShouldSkipFile -> pure $ Nothing
@@ -160,10 +103,11 @@ loadGhcSetupInfo ghcVersion baseUrl manager = do
           sha1 <- case Map.lookup relPath sha1s of
             Just s -> pure s
             Nothing -> tfail $ "Missing sha1 for file: " <> relPathText
-          let url = urlCorrection $ toUrl baseUrl relPath
+          let url = urlCorrection $ toUrl ghcDisplayVersion relPath
               Url urlText = url
           logg $ "discovering contentLength for " <> urlText
-          contentLength <- discoverContentLength url manager
+          -- contentLength <- discoverContentLength url manager
+          contentLength <- discoverContentLength' url contentLengths
           logg $ "finished for " <> relPathText
           pure $ Just $ GhcSetupInfo
             { ghcSetupInfoArch = arch
@@ -205,6 +149,12 @@ printCoda (GhcVersion ghcVersion) = do
   putStrLn "compiler-check: match-exact"
   putStrLn "packages: []"
 
+
+discoverContentLength' :: Url -> Map Url ContentLength -> IO ContentLength
+discoverContentLength' url coll = case lookup url coll of
+  Just cl -> pure cl
+  Nothing -> let Url urlt = url in tfail $ "Couldn't find cl for " <> urlt
+
 -- TODO: just scrape the HTML page listing the files instead?
 discoverContentLength :: Url -> Client.Manager -> IO ContentLength
 discoverContentLength (Url url) manager = do
@@ -221,41 +171,38 @@ discoverContentLength (Url url) manager = do
     Just contentLengthInt -> pure $ ContentLength contentLengthInt
     Nothing -> fail $ "Could not parse to int: " <> unpack contentLengthText
 
-baseBaseUrl :: Text
-baseBaseUrl = "https://downloads.haskell.org/~ghc/"
-
 -- TODO: better types
 -- TODO: implement this by looking at a SHA file
-discoverDateVer :: BaseUrl -> IO Text
-discoverDateVer "https://downloads.haskell.org/~ghc/8.6.1-beta1/" = pure "8.6.0.20180810"
-discoverDateVer (BaseUrl t) = tfail $ "Could not discover ghc version at: " <> t
+discoverDateVer :: GhcDisplayVersion -> IO GhcVersion
+discoverDateVer "8.6.1-beta1" = pure "8.6.0.20180810"
+discoverDateVer (GhcDisplayVersion t) = tfail $ "Could not discover ghc version at: " <> t
 
 -- TODO: reduce code duplication
-guessGhcVerReps :: Text -> IO (GhcVersion, BaseUrl)
+guessGhcVerReps :: Text -> IO (GhcVersion, GhcDisplayVersion)
 guessGhcVerReps text = case splitElem '-' text of
   [ver] -> pure
     ( GhcVersion ver
-    , BaseUrl $ baseBaseUrl <> ver <> "/"
+    , GhcDisplayVersion ver
     )
   ["ghc", ver] -> pure
     ( GhcVersion ver
-    , BaseUrl $ baseBaseUrl <> ver <> "/"
+    , GhcDisplayVersion ver
     )
   ["ghc", prospectiveVer, tag]
     | any (`isPrefixOf` tag) ["alpha", "beta", "rc"] -> do
-        let url = BaseUrl $ baseBaseUrl <> prospectiveVer <> "-" <> tag <> "/"
-        ver <- discoverDateVer url
+        let displayVersion = GhcDisplayVersion $ prospectiveVer <> "-" <> tag
+        ghcVersion <- discoverDateVer displayVersion
         pure
-          ( GhcVersion ver
-          , url
+          ( ghcVersion 
+          , displayVersion
           )
   [prospectiveVer, tag]
     | any (`isPrefixOf` tag) ["alpha", "beta", "rc"] -> do
-        let url = BaseUrl $ baseBaseUrl <> prospectiveVer <> "-" <> tag <> "/"
-        ver <- discoverDateVer url
+        let displayVersion = GhcDisplayVersion $ prospectiveVer <> "-" <> tag
+        ghcVersion <- discoverDateVer displayVersion
         pure
-          ( GhcVersion ver
-          , url
+          ( ghcVersion 
+          , displayVersion
           )
   _ -> tfail $ "Could not understand this ghc version: " <> text
 
@@ -269,8 +216,8 @@ mainWithArgs args = do
     [arg] -> pure arg
     _ -> fail $ "Too many args, expected only 1, got this: " <> show args
   manager <- TLS.newTlsManager
-  (ghcVersion, baseUrl) <- guessGhcVerReps verArg
-  ghcSetupInfos <- loadGhcSetupInfo ghcVersion baseUrl manager
+  (ghcVersion, ghcDateVersion) <- guessGhcVerReps verArg
+  ghcSetupInfos <- loadGhcSetupInfo ghcVersion ghcDateVersion manager
   putStrLn "# This file was generated by a script:"
   putStrLn "# https://github.com/DanBurton/stack-setup-info-gen/blob/master/setup-info-gen.hs"
   putStrLn "setup-info:"
@@ -278,14 +225,6 @@ mainWithArgs args = do
   mapM_ (printGhcSetupInfo 4) ghcSetupInfos
   printCoda ghcVersion
   pure ()
-
-politelyRequest
-  :: (Client.Request -> Client.Manager -> IO a)
-  -> (Client.Request -> Client.Manager -> IO a)
-politelyRequest doReq r m = do
-  threadDelay 100000 -- politely wait 0.1s between requests
-  doReq r m
-
 
 logg :: Text -> IO ()
 -- logg = putStrLn -- TODO stderr
