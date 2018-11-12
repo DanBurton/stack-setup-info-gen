@@ -18,3 +18,12 @@ executables:
     source-dirs: app
     main: Main.hs
     dependencies: stack-setup-info-gen
+
+tests:
+  generates-same-files:
+    source-dirs: test
+    main: Main.hs
+    dependencies:
+    - hspec
+    - silently
+    - stack-setup-info-gen
