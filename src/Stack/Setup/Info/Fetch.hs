@@ -138,7 +138,7 @@ loadTextFile gtf mkT gdv strat = do
           ( toUrl gdv $ RelativePath $ toStrict pathText
           , datum
           )
-      _ -> fail $ "File line was not in expected format"
+      _ -> tfail $ "File line was not in expected format"
 
 loadSha256s :: GhcDisplayVersion -> CachingStrategy -> IO (Map Url Sha256Sum)
 loadSha256s = loadTextFile Sha256Sums (pure . Sha256Sum)
