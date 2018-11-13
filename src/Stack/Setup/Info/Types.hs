@@ -27,12 +27,19 @@ newtype ContentLength = ContentLength Int
 newtype ShaFile = ShaFile Text
   deriving (IsString)
 
+urlCorrection :: Url -> Url
+urlCorrection "https://downloads.haskell.org/~ghc/8.6.2/ghc-8.6.2-x86_64-darwin.tar.xz"
+  = "https://downloads.haskell.org/~ghc/8.6.2/ghc-8.6.2-x86_64-apple-darwin.tar.xz"
+urlCorrection a = a
 
 baseBaseUrl :: Text
 baseBaseUrl = "https://downloads.haskell.org/~ghc/"
 
 toUrl :: GhcDisplayVersion -> RelativePath -> Url
-toUrl (GhcDisplayVersion ghcDisplayVersion) (RelativePath relPathText) = Url $
+toUrl gdv rp = urlCorrection $ toUrl' gdv rp
+
+toUrl' :: GhcDisplayVersion -> RelativePath -> Url
+toUrl' (GhcDisplayVersion ghcDisplayVersion) (RelativePath relPathText) = Url $
   baseBaseUrl <> ghcDisplayVersion <> "/" <> dropPrefixLength "./" relPathText
 
 -- like stripPrefix, but without enforcing that it is actually a prefix

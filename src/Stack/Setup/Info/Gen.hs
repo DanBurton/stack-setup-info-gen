@@ -1,4 +1,8 @@
-module Stack.Setup.Info.Gen (mainWithArgs) where
+module Stack.Setup.Info.Gen
+  ( mainWithArgs
+  -- TODO: separate mainWithArgs into yet another module
+  , stripSurroundings
+  ) where
 
 -- TODO: move usage
 -- usage: stack run ghc-8.6.1-beta1
@@ -51,18 +55,15 @@ systemNameMapping "x86_64-portbld-freebsd" = Just "freebsd64"
 systemNameMapping "i386-portbld-freebsd" = Just "freebsd32"
 systemNameMapping _ = Nothing
 
-urlCorrection :: Url -> Url
-urlCorrection "https://downloads.haskell.org/~ghc/8.6.2/ghc-8.6.2-x86_64-darwin.tar.xz"
-  = "https://downloads.haskell.org/~ghc/8.6.2/ghc-8.6.2-x86_64-apple-darwin.tar.xz"
-urlCorrection a = a
-
 -- TODO: generalize?
-stripSurroundings :: GhcVersion -> RelativePath -> FileName
-stripSurroundings (GhcVersion ghcVersion) (RelativePath relPath) =
+stripSurroundings :: GhcDisplayVersion -> GhcVersion -> Url -> FileName
+stripSurroundings (GhcDisplayVersion ghcDisplayVersion) (GhcVersion ghcVersion) (Url url) =
     FileName
   . dropSuffixLength ".tar.xz"
-  . dropPrefixLength ("./ghc-" <> ghcVersion <> "-")
-  $ relPath
+  . dropPrefixLength ("/ghc-" <> ghcVersion <> "-")
+  . dropPrefixLength ghcDisplayVersion
+  . dropPrefixLength baseBaseUrl
+  $ url
 
 -- TODO: use this again
 -- err :: Text -> IO ()
@@ -92,19 +93,17 @@ loadGhcSetupInfo ghcVersion ghcDisplayVersion manager = do
   sha256s <- loadSha256s ghcDisplayVersion manager
   logg "loading contentLengths"
   contentLengths <- loadContentLengths ghcDisplayVersion manager
-  let parseInfo :: (RelativePath, Sha256Sum) -> IO (Maybe GhcSetupInfo)
-      parseInfo (relPath, sha256) = case parseSystemName file of
+  let parseInfo :: (Url, Sha256Sum) -> IO (Maybe GhcSetupInfo)
+      parseInfo (url, sha256) = case parseSystemName file of
         ShouldSkipFile -> pure $ Nothing
         FileForArch arch -> do
-          sha1 <- case Map.lookup relPath sha1s of
+          sha1 <- case Map.lookup url sha1s of
             Just s -> pure s
-            Nothing -> tfail $ "Missing sha1 for file: " <> relPathText
-          let url = urlCorrection $ toUrl ghcDisplayVersion relPath
-              Url urlText = url
+            Nothing -> tfail $ "Missing sha1 for file: " <> urlText
           logg $ "discovering contentLength for " <> urlText
           -- contentLength <- discoverContentLength url manager
           contentLength <- discoverContentLength' url contentLengths
-          logg $ "finished for " <> relPathText
+          logg $ "finished for " <> urlText
           pure $ Just $ GhcSetupInfo
             { ghcSetupInfoArch = arch
             , ghcSetupInfoGhcVersion = ghcVersion
@@ -114,10 +113,10 @@ loadGhcSetupInfo ghcVersion ghcDisplayVersion manager = do
             , ghcSetupInfoSha1 = sha1
             }
         UnrecognizedFileName -> tfail $
-          "Encountered unrecognized file name: " <> relPathText
+          "Encountered unrecognized file name: " <> urlText
         where
-          (RelativePath relPathText) = relPath
-          file = stripSurroundings ghcVersion relPath
+          Url urlText = url
+          file = stripSurroundings ghcDisplayVersion ghcVersion url
   parseInfoMaybes <- mapM parseInfo $ Map.toAscList sha256s
   pure $ catMaybes parseInfoMaybes
 

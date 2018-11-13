@@ -86,8 +86,8 @@ scrapeContentLengths t =
       _ -> Nothing
 
 loadTextFile :: ShaFile -> (Text -> shaSum) -> GhcDisplayVersion -> Client.Manager
-         -> IO (Map RelativePath shaSum)
-loadTextFile (ShaFile shaFile) mkSha (GhcDisplayVersion ghcDisplayVersion) manager = do
+         -> IO (Map Url shaSum)
+loadTextFile (ShaFile shaFile) mkSha gdv@(GhcDisplayVersion ghcDisplayVersion) manager = do
   req <- Client.parseRequest $ unpack $ baseBaseUrl <> ghcDisplayVersion <> "/" <> shaFile
   res <- politelyRequest Client.httpLbs req manager
   let textBody = decodeUtf8 $ Client.responseBody $ res
@@ -97,16 +97,16 @@ loadTextFile (ShaFile shaFile) mkSha (GhcDisplayVersion ghcDisplayVersion) manag
   where
     lineToShaPair line = case words line of
       [shaText, pathText] -> pure
-        ( RelativePath $ toStrict pathText
+        ( toUrl gdv (RelativePath $ toStrict pathText)
         , mkSha $ toStrict shaText
         )
       _ -> fail $ "SHA file line was not in expected format"
 
 
-loadSha256s :: GhcDisplayVersion -> Client.Manager -> IO (Map RelativePath Sha256Sum)
+loadSha256s :: GhcDisplayVersion -> Client.Manager -> IO (Map Url Sha256Sum)
 loadSha256s = loadTextFile "SHA256SUMS" Sha256Sum
 
-loadSha1s :: GhcDisplayVersion -> Client.Manager -> IO (Map RelativePath Sha1Sum)
+loadSha1s :: GhcDisplayVersion -> Client.Manager -> IO (Map Url Sha1Sum)
 loadSha1s = loadTextFile "SHA1SUMS" Sha1Sum
 
 loadContentLengths :: GhcDisplayVersion -> Client.Manager -> IO (Map Url ContentLength)
