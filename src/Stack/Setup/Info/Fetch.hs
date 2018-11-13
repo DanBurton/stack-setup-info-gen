@@ -4,6 +4,7 @@ import ClassyPrelude
 import qualified Network.HTTP.Client as Client
 import Control.Concurrent (threadDelay)
 import qualified Data.Map as Map
+import qualified System.Directory as Directory
 
 import Stack.Setup.Info.Types
 
@@ -17,14 +18,17 @@ data GhcTextFile
   | Sha256Sums
   | ContentLengths
 
-toFileName :: GhcTextFile -> FileName
-toFileName Sha1Sums = "SHA1SUMS.txt"
-toFileName Sha256Sums = "SHA256SUMS.txt"
-toFileName ContentLengths = "CONTENT_LENGTHS.txt"
+toFilePath :: GhcTextFile -> FilePath
+toFilePath Sha1Sums = "SHA1SUMS.txt"
+toFilePath Sha256Sums = "SHA256SUMS.txt"
+toFilePath ContentLengths = "CONTENT_LENGTHS.txt"
 
 -- Sadly requesting "index.html" doesn't produce this file
-contentLengthsHtmlFileName :: FileName
-contentLengthsHtmlFileName = "index.html"
+indexFileName :: FileName
+indexFileName = "index.html"
+
+indexFilePath :: GhcDisplayVersion -> FilePath
+indexFilePath gdv = ghcTextFileDirName gdv </> "index.html"
 
 toServerFileName :: GhcTextFile -> RelativePath
 toServerFileName = \ case
@@ -36,15 +40,50 @@ ghcTextFileToUrl :: GhcDisplayVersion -> GhcTextFile -> Url
 ghcTextFileToUrl ghcDisplayVersion ghcTextFile =
   toUrl ghcDisplayVersion (toServerFileName ghcTextFile)
 
--- TODO: add caching in "input" folder
+ghcTextFileToFilePath :: GhcDisplayVersion -> GhcTextFile -> FilePath
+ghcTextFileToFilePath gdv gtf =
+  ghcTextFileDirName gdv </> toFilePath gtf
+
+fetchLocalTextFile :: GhcDisplayVersion -> GhcTextFile -> IO (Maybe LText)
+fetchLocalTextFile gdv gtf = do
+  let filePath = ghcTextFileToFilePath gdv gtf
+  Directory.doesFileExist filePath >>= \ case
+    True -> do
+      Just . fromStrict <$> readFileUtf8 filePath
+    False -> pure Nothing
+
+fetchRemoteTextFile :: GhcDisplayVersion -> GhcTextFile -> Client.Manager -> IO LText
+fetchRemoteTextFile gdv gtf manager = do
+  let url = ghcTextFileToUrl gdv gtf
+  requestTextFile url manager
+
+ghcTextFileDirName :: GhcDisplayVersion -> FilePath
+ghcTextFileDirName (GhcDisplayVersion gdv) = "input" </> unpack gdv
+
 fetchTextFile :: GhcDisplayVersion -> GhcTextFile -> CachingStrategy -> IO LText
-fetchTextFile ghcDisplayVersion ghcTextFile = \ case
-  LocalOnly -> do fail "TODO LocalOnly"
-  CacheLocal _manager -> do fail "TODO CacheLocal"
+fetchTextFile gdv gtf = \ case
+  LocalOnly -> fetchLocalTextFile gdv gtf >>= \ case
+    Just t -> pure t
+    Nothing -> fail $ "couldn't find local file: " <> ghcTextFileToFilePath gdv gtf
+  CacheLocal manager -> fetchLocalTextFile gdv gtf >>= \ case
+    Just t -> pure t
+    Nothing -> do
+      let dirName = ghcTextFileDirName gdv
+      Directory.createDirectoryIfMissing True dirName
+      t <- fetchRemoteTextFile gdv gtf manager
+      case gtf of
+        ContentLengths -> do
+          writeFileUtf8 (indexFilePath gdv) $ toStrict t
+          let t' = writeContentLengths $ scrapeContentLengths t
+          writeFileUtf8 (ghcTextFileToFilePath gdv gtf) $ toStrict t'
+          pure t'
+        _ -> do
+          writeFileUtf8 (ghcTextFileToFilePath gdv gtf) $ toStrict t
+          pure t
   NoCache manager -> do
-    let url = ghcTextFileToUrl ghcDisplayVersion ghcTextFile
+    let url = ghcTextFileToUrl gdv gtf
     text <- requestTextFile url manager
-    pure $ case ghcTextFile of
+    pure $ case gtf of
       ContentLengths -> writeContentLengths $ scrapeContentLengths text
       _ -> text
 
@@ -85,48 +124,29 @@ scrapeContentLengths t =
         _ -> Nothing
       _ -> Nothing
 
-loadTextFile :: ShaFile -> (Text -> shaSum) -> GhcDisplayVersion -> Client.Manager
-         -> IO (Map Url shaSum)
-loadTextFile (ShaFile shaFile) mkSha gdv@(GhcDisplayVersion ghcDisplayVersion) manager = do
-  req <- Client.parseRequest $ unpack $ baseBaseUrl <> ghcDisplayVersion <> "/" <> shaFile
-  res <- politelyRequest Client.httpLbs req manager
-  let textBody = decodeUtf8 $ Client.responseBody $ res
-      bodyLines = lines textBody
-  pairs <- mapM lineToShaPair bodyLines
+loadTextFile :: GhcTextFile -> (Text -> IO t) -> GhcDisplayVersion -> CachingStrategy
+             -> IO (Map Url t)
+loadTextFile gtf mkT gdv strat = do
+  textBody <- fetchTextFile gdv gtf strat
+  pairs <- mapM lineToPair $ lines textBody
   pure $ Map.fromList pairs
   where
-    lineToShaPair line = case words line of
-      [shaText, pathText] -> pure
-        ( toUrl gdv (RelativePath $ toStrict pathText)
-        , mkSha $ toStrict shaText
-        )
-      _ -> fail $ "SHA file line was not in expected format"
-
-
-loadSha256s :: GhcDisplayVersion -> Client.Manager -> IO (Map Url Sha256Sum)
-loadSha256s = loadTextFile "SHA256SUMS" Sha256Sum
-
-loadSha1s :: GhcDisplayVersion -> Client.Manager -> IO (Map Url Sha1Sum)
-loadSha1s = loadTextFile "SHA1SUMS" Sha1Sum
-
-loadContentLengths :: GhcDisplayVersion -> Client.Manager -> IO (Map Url ContentLength)
-loadContentLengths gdv@(GhcDisplayVersion ghcDisplayVersion) manager = do
-  req <- Client.parseRequest $ unpack $ baseBaseUrl <> ghcDisplayVersion <> "/"
-  res <- politelyRequest Client.httpLbs req manager
-  let textBody = decodeUtf8 $ Client.responseBody $ res
-      -- It may seem silly to do it this way now.
-      -- The point is to eventually cache the intermediate file so that CONTENT_LENGTHS.txt
-      -- is a simple, readable fine in the same format as the SHA sum files.
-      textBody' = writeContentLengths $ scrapeContentLengths textBody
-      bodyLines = lines textBody'
-  pairs <- mapM lineToShaPair bodyLines
-  pure $ Map.fromList pairs
-  where
-    lineToShaPair line = case words line of
-      [contentLengthText, pathText] -> case readMay $ unpack contentLengthText of
-        Just contentLength -> pure
-          ( toUrl gdv (RelativePath $ toStrict pathText)
-          , ContentLength $ contentLength
+    lineToPair line = case words line of
+      [datumText, pathText] -> do
+        datum <- mkT $ toStrict datumText
+        pure
+          ( toUrl gdv $ RelativePath $ toStrict pathText
+          , datum
           )
-        _ -> fail $ "CONTENT_LENGTHS.txt file line was not in expected format"
-      _ -> fail $ "CONTENT_LENGTHS.txt file line was not in expected format"
+      _ -> fail $ "File line was not in expected format"
+
+loadSha256s :: GhcDisplayVersion -> CachingStrategy -> IO (Map Url Sha256Sum)
+loadSha256s = loadTextFile Sha256Sums (pure . Sha256Sum)
+
+loadSha1s :: GhcDisplayVersion -> CachingStrategy -> IO (Map Url Sha1Sum)
+loadSha1s = loadTextFile Sha1Sums (pure . Sha1Sum)
+
+loadContentLengths :: GhcDisplayVersion -> CachingStrategy -> IO (Map Url ContentLength)
+loadContentLengths = loadTextFile ContentLengths $ \ t -> case readMay t of
+  Just i -> pure $ ContentLength i
+  Nothing -> tfail $ "Could not read text as content length: " <> t

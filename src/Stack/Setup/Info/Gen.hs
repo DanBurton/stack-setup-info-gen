@@ -10,7 +10,6 @@ module Stack.Setup.Info.Gen
 import Data.Semigroup ((<>))
 
 import ClassyPrelude
-import qualified Network.HTTP.Client as Client
 import qualified Network.HTTP.Client.TLS as TLS
 -- TODO: use this again
 -- import qualified System.IO as Sys
@@ -85,14 +84,15 @@ parseSystemName fileName
       Nothing -> UnrecognizedFileName
 
 -- TODO: warn about errors, gracefully degrade rather than fatally crash
-loadGhcSetupInfo :: GhcVersion -> GhcDisplayVersion -> Client.Manager -> IO [GhcSetupInfo]
-loadGhcSetupInfo ghcVersion ghcDisplayVersion manager = do
+loadGhcSetupInfo :: GhcVersion -> GhcDisplayVersion -> CachingStrategy
+                 -> IO [GhcSetupInfo]
+loadGhcSetupInfo ghcVersion ghcDisplayVersion strat = do
   logg "loading sha1s"
-  sha1s <- loadSha1s ghcDisplayVersion manager
+  sha1s <- loadSha1s ghcDisplayVersion strat
   logg "loading sha256s"
-  sha256s <- loadSha256s ghcDisplayVersion manager
+  sha256s <- loadSha256s ghcDisplayVersion strat
   logg "loading contentLengths"
-  contentLengths <- loadContentLengths ghcDisplayVersion manager
+  contentLengths <- loadContentLengths ghcDisplayVersion strat
   let parseInfo :: (Url, Sha256Sum) -> IO (Maybe GhcSetupInfo)
       parseInfo (url, sha256) = case parseSystemName file of
         ShouldSkipFile -> pure $ Nothing
@@ -101,8 +101,7 @@ loadGhcSetupInfo ghcVersion ghcDisplayVersion manager = do
             Just s -> pure s
             Nothing -> tfail $ "Missing sha1 for file: " <> urlText
           logg $ "discovering contentLength for " <> urlText
-          -- contentLength <- discoverContentLength url manager
-          contentLength <- discoverContentLength' url contentLengths
+          contentLength <- discoverContentLength url contentLengths
           logg $ "finished for " <> urlText
           pure $ Just $ GhcSetupInfo
             { ghcSetupInfoArch = arch
@@ -144,27 +143,10 @@ printCoda (GhcVersion ghcVersion) = do
   putStrLn "compiler-check: match-exact"
   putStrLn "packages: []"
 
-
-discoverContentLength' :: Url -> Map Url ContentLength -> IO ContentLength
-discoverContentLength' url coll = case lookup url coll of
+discoverContentLength :: Url -> Map Url ContentLength -> IO ContentLength
+discoverContentLength url coll = case lookup url coll of
   Just cl -> pure cl
   Nothing -> let Url urlt = url in tfail $ "Couldn't find cl for " <> urlt
-
--- TODO: just scrape the HTML page listing the files instead?
-discoverContentLength :: Url -> Client.Manager -> IO ContentLength
-discoverContentLength (Url url) manager = do
-  req0 <- Client.parseRequest $ unpack url
-  let req = req0 { Client.method = "HEAD" }
-  res <- politelyRequest Client.httpNoBody req manager
-  -- TODO: ensure a 200 response, otherwise content-length could be wrong
-  -- TODO: retries
-  let headers = Client.responseHeaders res
-  contentLengthText <- case lookup "content-length" headers of
-    Just r -> pure $ decodeUtf8 r
-    Nothing -> fail $ "Too many content-length headers for url: " <> (unpack url)
-  case readMay contentLengthText of
-    Just contentLengthInt -> pure $ ContentLength contentLengthInt
-    Nothing -> fail $ "Could not parse to int: " <> unpack contentLengthText
 
 -- TODO: better types
 -- TODO: implement this by looking at a SHA file
@@ -201,18 +183,14 @@ guessGhcVerReps text = case splitElem '-' text of
           )
   _ -> tfail $ "Could not understand this ghc version: " <> text
 
-tfail :: Text -> IO a
-tfail = fail . unpack
-
 mainWithArgs :: [Text] -> IO ()
 mainWithArgs args = do
-  -- So far only regular releases of ghc are handled properly with args
   verArg <- case args of
     [arg] -> pure arg
     _ -> fail $ "Too many args, expected only 1, got this: " <> show args
   manager <- TLS.newTlsManager
   (ghcVersion, ghcDateVersion) <- guessGhcVerReps verArg
-  ghcSetupInfos <- loadGhcSetupInfo ghcVersion ghcDateVersion manager
+  ghcSetupInfos <- loadGhcSetupInfo ghcVersion ghcDateVersion (NoCache manager)
   putStrLn "# This file was generated:"
   putStrLn "# https://github.com/DanBurton/stack-setup-info-gen/"
   putStrLn "setup-info:"

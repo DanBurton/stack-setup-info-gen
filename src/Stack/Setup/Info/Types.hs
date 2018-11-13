@@ -48,3 +48,6 @@ dropPrefixLength prefix t = drop (length prefix) t
 
 dropSuffixLength :: Text -> Text -> Text
 dropSuffixLength suffix = reverse . dropPrefixLength suffix . reverse
+
+tfail :: Text -> IO a
+tfail = fail . unpack

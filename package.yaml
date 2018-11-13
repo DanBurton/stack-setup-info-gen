@@ -11,10 +11,11 @@ dependencies:
 - base
 - bytestring
 - classy-prelude
+- containers
+- directory
 - http-client
 - http-client-tls
 - text
-- containers
 
 library:
   source-dirs: src
