@@ -33,16 +33,19 @@ shouldSkipFile :: FileName -> Bool
 shouldSkipFile "src" = True
 shouldSkipFile "testsuite" = True
 shouldSkipFile "windows-extra-src" = True
-shouldSkipFile "x86_64-deb8-linux-dwarf" = True -- not sure how to disambiguate from deb8
-shouldSkipFile "x86_64-deb9-linux" = True -- also not sure how to disambiguate from deb8
+-- The following cases clearly show that this is the wrong way to go about this
+shouldSkipFile "x86_64-deb8-linux" = True -- also not sure how to disambiguate from deb8
+shouldSkipFile "x86_64-deb8-linux-dwarf" = True -- not sure how to disambiguate from deb9
+shouldSkipFile "x86_64-deb9-linux-dwarf" = True -- also not sure how to disambiguate from deb9
 shouldSkipFile _ = False
 
 systemNameMapping :: SystemName -> Maybe Arch
 systemNameMapping "i386-deb8-linux" = Just "linux32"
+systemNameMapping "i386-deb9-linux" = Just "linux32"
 systemNameMapping "i386-unknown-mingw32" = Just "windows32"
 systemNameMapping "i386-unknown-mingw32-win10" = Just "windows32"
 systemNameMapping "x86_64-apple-darwin" = Just "macosx"
-systemNameMapping "x86_64-deb8-linux" = Just "linux64"
+systemNameMapping "x86_64-deb9-linux" = Just "linux64"
 systemNameMapping "x86_64-unknown-mingw32" = Just "windows64"
 systemNameMapping "x86_64-unknown-mingw32-win10" = Just "windows64"
 systemNameMapping "x86_64-fedora27-linux" = Just "linux64-tinfo6"
@@ -127,7 +130,7 @@ printGhcSetupInfo indent info = do
       ContentLength contentLength = ghcSetupInfoContentLength info
       Sha256Sum sha256 = ghcSetupInfoSha256 info
       Sha1Sum sha1 = ghcSetupInfoSha1 info
-      indentText = replicate indent ' ' 
+      indentText = replicate indent ' '
   putStrLn $ indentText <> arch <> ":"
   putStrLn $ indentText <> "    " <> ver <> ":"
   putStrLn $ indentText <> "        url: \"" <> url <> "\""
@@ -170,7 +173,7 @@ guessGhcVerReps text = case splitElem '-' text of
         let displayVersion = GhcDisplayVersion $ prospectiveVer <> "-" <> tag
         ghcVersion <- discoverDateVer displayVersion
         pure
-          ( ghcVersion 
+          ( ghcVersion
           , displayVersion
           )
   [prospectiveVer, tag]
@@ -178,7 +181,7 @@ guessGhcVerReps text = case splitElem '-' text of
         let displayVersion = GhcDisplayVersion $ prospectiveVer <> "-" <> tag
         ghcVersion <- discoverDateVer displayVersion
         pure
-          ( ghcVersion 
+          ( ghcVersion
           , displayVersion
           )
   _ -> tfail $ "Could not understand this ghc version: " <> text

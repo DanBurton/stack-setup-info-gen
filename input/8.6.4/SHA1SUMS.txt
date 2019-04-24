@@ -1,0 +1,10 @@
+434988420a61279d0fa9d61155cd7aeeba33c308  ./ghc-8.6.4-x86_64-deb8-linux.tar.xz
+6e8a739b432be194fdb64b6dd65c76cd9d7b98fd  ./ghc-8.6.4-x86_64-apple-darwin.tar.xz
+93a3e12b34fe80592566c954246ebabf69ae0a91  ./ghc-8.6.4-testsuite.tar.xz
+7e586235baf4468a12b9cd40a130833e3c2eec8d  ./ghc-8.6.4-windows-extra-src.tar.xz
+62608fb0be2645afa307e112e4c6d1300e2fbd52  ./ghc-8.6.4-x86_64-deb9-linux.tar.xz
+13c153c27d34b8efc1beaed29dfb3bf2266a2638  ./ghc-8.6.4-x86_64-fedora27-linux.tar.xz
+67fcaf3565ee7022581bef320e7b2811fe2c0ae0  ./ghc-8.6.4-src.tar.xz
+b6910746aac615edec3a24b4c3e0453276021b92  ./ghc-8.6.4-x86_64-deb9-linux-dwarf.tar.xz
+59ed4f57e6079470db5d7b5c4a6886d8639bc544  ./ghc-8.6.4-i386-deb9-linux.tar.xz
+7d7e8448ad9b5b412223ad78c4fbde5af31c0fc4  ./ghc-8.6.4-x86_64-unknown-mingw32.tar.xz
