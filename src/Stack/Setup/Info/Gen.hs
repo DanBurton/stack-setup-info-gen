@@ -37,6 +37,7 @@ shouldSkipFile "windows-extra-src" = True
 shouldSkipFile "x86_64-deb8-linux" = True -- also not sure how to disambiguate from deb8
 shouldSkipFile "x86_64-deb8-linux-dwarf" = True -- not sure how to disambiguate from deb9
 shouldSkipFile "x86_64-deb9-linux-dwarf" = True -- also not sure how to disambiguate from deb9
+shouldSkipFile "x86_64-centos7-linux" = True -- Not sure what the systemNameMapping is for this
 shouldSkipFile _ = False
 
 systemNameMapping :: SystemName -> Maybe Arch
@@ -155,6 +156,7 @@ discoverContentLength url coll = case lookup url coll of
 -- TODO: implement this by looking at a SHA file
 discoverDateVer :: GhcDisplayVersion -> IO GhcVersion
 discoverDateVer "8.6.1-beta1" = pure "8.6.0.20180810"
+discoverDateVer "8.8.1-alpha1" = pure "8.8.0.20190424"
 discoverDateVer (GhcDisplayVersion t) = tfail $ "Could not discover ghc version at: " <> t
 
 -- TODO: reduce code duplication
