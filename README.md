@@ -10,6 +10,18 @@ Sample usage, from the project root:
 stack run ghc-8.6.1-beta1
 ```
 
+If the input files don't already exist in the repo,
+you can add the --cache-local flag to fetch them.
+(Upon reflection, this is an awkwardly named flag.)
+
+```bash
+stack run -- ghc-8.6.5 --cache-local
+```
+
+If the script doesn't know how to "discover ghc version",
+implement `discoverDateVer` the right way, or just add the translation
+by hand.
+
 The output of this script, for some ghc versions, is included in this repo
 under the output/ folder.
 

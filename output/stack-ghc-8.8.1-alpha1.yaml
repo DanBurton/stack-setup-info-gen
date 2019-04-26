@@ -14,6 +14,12 @@ setup-info:
             content-length: 184567176
             sha1: 9f179398d07d826cd2106c203c645f9843c8a577
             sha256: 563e34bb2d8a48fa5630136c5acc059bab0e807bf4f02b23d0fbc75f38500feb
+    linux64-gmp4:
+        8.8.0.20190424:
+            url: "https://downloads.haskell.org/~ghc/8.8.1-alpha1/ghc-8.8.0.20190424-x86_64-centos7-linux.tar.xz"
+            content-length: 193236252
+            sha1: ea037a8575a147587d7f76d3e826f32418fbfa88
+            sha256: 2409bff7b1058ad3205c5b198e63a6376ff9c57d134da5ce47c385269f8c89dc
     linux64:
         8.8.0.20190424:
             url: "https://downloads.haskell.org/~ghc/8.8.1-alpha1/ghc-8.8.0.20190424-x86_64-deb9-linux.tar.xz"

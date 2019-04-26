@@ -37,7 +37,6 @@ shouldSkipFile "windows-extra-src" = True
 shouldSkipFile "x86_64-deb8-linux" = True -- also not sure how to disambiguate from deb8
 shouldSkipFile "x86_64-deb8-linux-dwarf" = True -- not sure how to disambiguate from deb9
 shouldSkipFile "x86_64-deb9-linux-dwarf" = True -- also not sure how to disambiguate from deb9
-shouldSkipFile "x86_64-centos7-linux" = True -- Not sure what the systemNameMapping is for this
 shouldSkipFile _ = False
 
 systemNameMapping :: SystemName -> Maybe Arch
@@ -56,6 +55,7 @@ systemNameMapping "x86_64-fedora-linux" = Just "linux64-tinfo6"
 systemNameMapping "aarch64-deb8-linux" = Just "linux-aarch64"
 systemNameMapping "x86_64-portbld-freebsd" = Just "freebsd64"
 systemNameMapping "i386-portbld-freebsd" = Just "freebsd32"
+systemNameMapping "x86_64-centos7-linux" = Just "linux64-gmp4"
 systemNameMapping _ = Nothing
 
 -- TODO: generalize?
