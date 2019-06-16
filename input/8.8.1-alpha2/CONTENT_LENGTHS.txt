@@ -1,0 +1,16 @@
+543  ./SHA1SUMS
+586  ./SHA1SUMS.sig
+687  ./SHA256SUMS
+586  ./SHA256SUMS.sig
+204060792  ./ghc-8.8.0.20190613-i386-deb9-linux.tar.xz
+586  ./ghc-8.8.0.20190613-i386-deb9-linux.tar.xz.sig
+184846152  ./ghc-8.8.0.20190613-x86_64-apple-darwin.tar.xz
+586  ./ghc-8.8.0.20190613-x86_64-apple-darwin.tar.xz.sig
+361390392  ./ghc-8.8.0.20190613-x86_64-deb9-linux-dwarf.tar.xz
+586  ./ghc-8.8.0.20190613-x86_64-deb9-linux-dwarf.tar.xz.sig
+199898532  ./ghc-8.8.0.20190613-x86_64-deb9-linux.tar.xz
+586  ./ghc-8.8.0.20190613-x86_64-deb9-linux.tar.xz.sig
+201560804  ./ghc-8.8.0.20190613-x86_64-fedora27-linux.tar.xz
+586  ./ghc-8.8.0.20190613-x86_64-fedora27-linux.tar.xz.sig
+224468920  ./ghc-8.8.0.20190613-x86_64-unknown-mingw32.tar.xz
+586  ./ghc-8.8.0.20190613-x86_64-unknown-mingw32.tar.xz.sig

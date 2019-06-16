@@ -157,6 +157,7 @@ discoverContentLength url coll = case lookup url coll of
 discoverDateVer :: GhcDisplayVersion -> IO GhcVersion
 discoverDateVer "8.6.1-beta1" = pure "8.6.0.20180810"
 discoverDateVer "8.8.1-alpha1" = pure "8.8.0.20190424"
+discoverDateVer "8.8.1-alpha2" = pure "8.8.0.20190613"
 discoverDateVer (GhcDisplayVersion t) = tfail $ "Could not discover ghc version at: " <> t
 
 -- TODO: reduce code duplication

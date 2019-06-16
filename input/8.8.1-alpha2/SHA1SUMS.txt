@@ -1,0 +1,6 @@
+116bdaadcde045f78adcf1ffce291c79fb1c3eb6  ./ghc-8.8.0.20190613-x86_64-apple-darwin.tar.xz
+fc3d9f10f27d4e895eb0885b4b160a94d3d418fb  ./ghc-8.8.0.20190613-x86_64-deb9-linux-dwarf.tar.xz
+0fe7fc95073602078e0677ae623dd02f46ae3a5b  ./ghc-8.8.0.20190613-i386-deb9-linux.tar.xz
+b4a3b2b45625eb32dd7f892246da9a602d9ce7db  ./ghc-8.8.0.20190613-x86_64-unknown-mingw32.tar.xz
+11360a17f61da02c82d0f64f07e124479cedecc4  ./ghc-8.8.0.20190613-x86_64-deb9-linux.tar.xz
+07eb8ab473f2aa3c21ac2b497142a01466ace5ee  ./ghc-8.8.0.20190613-x86_64-fedora27-linux.tar.xz
