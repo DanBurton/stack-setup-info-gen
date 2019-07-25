@@ -193,18 +193,18 @@ guessGhcVerReps text = case splitElem '-' text of
 -- TODO: error message that suggests using --cache-local if the default of --local-only fails.
 mainWithArgs :: [Text] -> IO ()
 mainWithArgs args = do
-  (verArg, strat) <- case args of
+  (verArg, cachingStrategy) <- case args of
     [arg] -> pure (arg, LocalOnly)
-    [arg, "--local-only"] -> pure (arg, LocalOnly)
-    [arg, "--cache-local"] -> do
+    [arg, "--no-fetch-inputs"] -> pure (arg, LocalOnly)
+    [arg, "--fetch-inputs"] -> do
       manager <- TLS.newTlsManager
       pure (arg, CacheLocal manager)
-    [arg, "--no-cache"] -> do
+    [arg, "--fetch-inputs-with-no-cache"] -> do
       manager <- TLS.newTlsManager
       pure (arg, NoCache manager)
     _ -> tfail $ "Too many args, expected only 1, got this: " <> tshow args
   (ghcVersion, ghcDateVersion) <- guessGhcVerReps verArg
-  ghcSetupInfos <- loadGhcSetupInfo ghcVersion ghcDateVersion strat
+  ghcSetupInfos <- loadGhcSetupInfo ghcVersion ghcDateVersion cachingStrategy
   putStrLn "# This file was generated:"
   putStrLn "# https://github.com/DanBurton/stack-setup-info-gen/"
   putStrLn "setup-info:"

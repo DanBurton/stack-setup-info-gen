@@ -61,10 +61,11 @@ ghcTextFileDirName :: GhcDisplayVersion -> FilePath
 ghcTextFileDirName (GhcDisplayVersion gdv) = "input" </> unpack gdv
 
 fetchTextFile :: GhcDisplayVersion -> GhcTextFile -> CachingStrategy -> IO LText
-fetchTextFile gdv gtf = \ case
+fetchTextFile gdv@(GhcDisplayVersion gdvText) gtf = \ case
   LocalOnly -> fetchLocalTextFile gdv gtf >>= \ case
     Just t -> pure t
     Nothing -> fail $ "couldn't find local file: " <> ghcTextFileToFilePath gdv gtf
+      <> "\n Try `stack run -- ghc-" <> unpack gdvText <> " --fetch-inputs`"
   CacheLocal manager -> fetchLocalTextFile gdv gtf >>= \ case
     Just t -> pure t
     Nothing -> do

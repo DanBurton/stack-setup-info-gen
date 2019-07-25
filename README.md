@@ -9,11 +9,10 @@ stack run ghc-8.6.1-beta1
 ```
 
 If the input files don't already exist in the repo,
-you can add the --cache-local flag to fetch them.
-(Upon reflection, this is an awkwardly named flag.)
+you can use the --fetch-inputs flag.
 
 ```bash
-stack run -- ghc-8.6.5 --cache-local
+stack run -- ghc-8.6.5 --fetch-inputs
 ```
 
 If the script doesn't know how to "discover ghc version",
