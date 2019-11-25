@@ -37,6 +37,7 @@ shouldSkipFile "windows-extra-src" = True
 shouldSkipFile "x86_64-deb8-linux" = True -- also not sure how to disambiguate from deb8
 shouldSkipFile "x86_64-deb8-linux-dwarf" = True -- not sure how to disambiguate from deb9
 shouldSkipFile "x86_64-deb9-linux-dwarf" = True -- also not sure how to disambiguate from deb9
+shouldSkipFile "armv7-deb9-linux" = True -- Does stack support arm yet?
 shouldSkipFile _ = False
 
 systemNameMapping :: SystemName -> Maybe Arch
@@ -53,6 +54,7 @@ systemNameMapping "x86_64-unknown-linux" = Just "linux64"
 systemNameMapping "x86_64-darwin" = Just "macosx"
 systemNameMapping "x86_64-fedora-linux" = Just "linux64-tinfo6"
 systemNameMapping "aarch64-deb8-linux" = Just "linux-aarch64"
+systemNameMapping "aarch64-deb9-linux" = Just "linux-aarch64"
 systemNameMapping "x86_64-portbld-freebsd" = Just "freebsd64"
 systemNameMapping "i386-portbld-freebsd" = Just "freebsd32"
 systemNameMapping "x86_64-centos7-linux" = Just "linux64-gmp4"
@@ -60,12 +62,12 @@ systemNameMapping _ = Nothing
 
 -- TODO: generalize?
 stripSurroundings :: GhcDisplayVersion -> GhcVersion -> Url -> FileName
-stripSurroundings (GhcDisplayVersion ghcDisplayVersion) (GhcVersion ghcVersion) (Url url) =
+stripSurroundings gdv@(GhcDisplayVersion ghcDisplayVersion) (GhcVersion ghcVersion) (Url url) =
     FileName
   . dropSuffixLength ".tar.xz"
   . dropPrefixLength ("/ghc-" <> ghcVersion <> "-")
   . dropPrefixLength ghcDisplayVersion
-  . dropPrefixLength baseBaseUrl
+  . dropPrefixLength (baseBaseUrl gdv)
   $ url
 
 -- TODO: use this again
@@ -79,6 +81,7 @@ data SystemNameParse =
     ShouldSkipFile
   | UnrecognizedFileName
   | FileForArch Arch
+  deriving Show
 
 parseSystemName :: FileName -> SystemNameParse
 parseSystemName fileName
@@ -159,6 +162,7 @@ discoverDateVer "8.6.1-beta1" = pure "8.6.0.20180810"
 discoverDateVer "8.8.1-alpha1" = pure "8.8.0.20190424"
 discoverDateVer "8.8.1-alpha2" = pure "8.8.0.20190613"
 discoverDateVer "8.8.1-rc1" = pure "8.8.0.20190721"
+discoverDateVer "8.10.1-alpha1" = pure "8.10.0.20191121"
 discoverDateVer (GhcDisplayVersion t) = tfail $ "Could not discover ghc version at: " <> t
 
 -- TODO: reduce code duplication

@@ -1,6 +1,8 @@
+{-# LANGUAGE ViewPatterns #-}
 module Stack.Setup.Info.Types where
 
 import ClassyPrelude
+import Data.Text (splitOn)
 
 -- e.g. 8.6.1-beta1
 newtype GhcDisplayVersion = GhcDisplayVersion Text
@@ -32,15 +34,33 @@ urlCorrection "https://downloads.haskell.org/~ghc/8.6.2/ghc-8.6.2-x86_64-darwin.
   = "https://downloads.haskell.org/~ghc/8.6.2/ghc-8.6.2-x86_64-apple-darwin.tar.xz"
 urlCorrection a = a
 
-baseBaseUrl :: Text
-baseBaseUrl = "https://downloads.haskell.org/~ghc/"
+numericVersionText :: GhcDisplayVersion -> Text
+numericVersionText (GhcDisplayVersion ghcDisplayVersion) = case splitOn "-" ghcDisplayVersion of
+  [ver] -> ver
+  [ver, _alpha] -> ver
+  [_ghc, ver, _alpha] -> ver
+  xs -> error ("numericVersionText: wat? " <> show xs)
+  -- TODO: proper error handling
+
+displayDigits :: GhcDisplayVersion -> (Int, Int, Int)
+displayDigits ghcDisplayVersion =
+  case splitOn "." (numericVersionText ghcDisplayVersion) of
+    xs@[tx, ty, tz] -> case (readMay tx, readMay ty, readMay tz) of
+      (Just x, Just y, Just z) -> (x, y, z)
+      _ -> error ("displayDigits: wat? " <> show xs)
+    xs -> error ("displayDigits: wat? " <> show xs)
+  -- TODO: proper error handling
+
+baseBaseUrl :: GhcDisplayVersion -> Text
+baseBaseUrl (displayDigits -> (x, y, _)) | x <= 8 && y <= 8 = "https://downloads.haskell.org/~ghc/"
+baseBaseUrl _ = "https://downloads.haskell.org/ghc/"
 
 toUrl :: GhcDisplayVersion -> RelativePath -> Url
 toUrl gdv rp = urlCorrection $ toUrl' gdv rp
 
 toUrl' :: GhcDisplayVersion -> RelativePath -> Url
-toUrl' (GhcDisplayVersion ghcDisplayVersion) (RelativePath relPathText) = Url $
-  baseBaseUrl <> ghcDisplayVersion <> "/" <> dropPrefixLength "./" relPathText
+toUrl' gdv@(GhcDisplayVersion ghcDisplayVersion) (RelativePath relPathText) = Url $
+  baseBaseUrl gdv <> ghcDisplayVersion <> "/" <> dropPrefixLength "./" relPathText
 
 -- like stripPrefix, but without enforcing that it is actually a prefix
 dropPrefixLength :: Text -> Text -> Text
