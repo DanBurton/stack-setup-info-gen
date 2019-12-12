@@ -34,9 +34,10 @@ shouldSkipFile "src" = True
 shouldSkipFile "testsuite" = True
 shouldSkipFile "windows-extra-src" = True
 -- The following cases clearly show that this is the wrong way to go about this
-shouldSkipFile "x86_64-deb8-linux" = True -- also not sure how to disambiguate from deb8
+shouldSkipFile "x86_64-deb8-linux" = True -- also not sure how to disambiguate from deb9
 shouldSkipFile "x86_64-deb8-linux-dwarf" = True -- not sure how to disambiguate from deb9
 shouldSkipFile "x86_64-deb9-linux-dwarf" = True -- also not sure how to disambiguate from deb9
+shouldSkipFile "x86_64-deb10-linux" = True -- also not sure how to disambiguate from deb9
 shouldSkipFile "armv7-deb9-linux" = True -- Does stack support arm yet?
 shouldSkipFile _ = False
 
@@ -162,8 +163,9 @@ discoverDateVer "8.6.1-beta1" = pure "8.6.0.20180810"
 discoverDateVer "8.8.1-alpha1" = pure "8.8.0.20190424"
 discoverDateVer "8.8.1-alpha2" = pure "8.8.0.20190613"
 discoverDateVer "8.8.1-rc1" = pure "8.8.0.20190721"
-discoverDateVer "8.10.1-alpha1" = pure "8.10.0.20191121"
 discoverDateVer "8.8.2-rc1" = pure "8.8.1.20191211"
+discoverDateVer "8.10.1-alpha1" = pure "8.10.0.20191121"
+discoverDateVer "8.10.1-alpha2" = pure "8.10.0.20191210"
 discoverDateVer (GhcDisplayVersion t) = tfail $ "Could not discover ghc version at: " <> t
 
 -- TODO: reduce code duplication
