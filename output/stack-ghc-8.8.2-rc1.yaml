@@ -1,0 +1,51 @@
+# This file was generated:
+# https://github.com/DanBurton/stack-setup-info-gen/
+setup-info:
+  ghc:
+    linux-aarch64:
+        8.8.1.20191211:
+            url: "https://downloads.haskell.org/~ghc/8.8.2-rc1/ghc-8.8.1.20191211-aarch64-deb9-linux.tar.xz"
+            content-length: 300917700
+            sha1: 32bb8d2786c10af52ba3ffa387786aa6bf1d948a
+            sha256: 555d3bf11b1300bc4cbf8d96c9d82d6fdeb8ab94d18d71be953a28595f0c06b7
+    linux32:
+        8.8.1.20191211:
+            url: "https://downloads.haskell.org/~ghc/8.8.2-rc1/ghc-8.8.1.20191211-i386-deb9-linux.tar.xz"
+            content-length: 204983016
+            sha1: 4356e2b29a7ee016f3723e990d17cc702c5da515
+            sha256: bc2f89d6d84c8fe09eb127f1b3921d08537ea71c2d940e8bce4e48bd6d0a31af
+    macosx:
+        8.8.1.20191211:
+            url: "https://downloads.haskell.org/~ghc/8.8.2-rc1/ghc-8.8.1.20191211-x86_64-apple-darwin.tar.xz"
+            content-length: 190127600
+            sha1: c364eecb037c87a6977f1c11c3b5e7550eb94027
+            sha256: 85aa9a4f88cfb51b3e2423c27b1562d75a4c34a8f5e7cf12a112c3bd662d0fae
+    linux64-gmp4:
+        8.8.1.20191211:
+            url: "https://downloads.haskell.org/~ghc/8.8.2-rc1/ghc-8.8.1.20191211-x86_64-centos7-linux.tar.xz"
+            content-length: 194927700
+            sha1: 3e3aa552806d5afd59507f4c7caec7b91dcd9614
+            sha256: ad818429c0434a3f6eafe0e4d58b0348a41eb9925f25f12f9edcd13045b619e3
+    linux64:
+        8.8.1.20191211:
+            url: "https://downloads.haskell.org/~ghc/8.8.2-rc1/ghc-8.8.1.20191211-x86_64-deb9-linux.tar.xz"
+            content-length: 200698124
+            sha1: 1265e3d8a11645330933912a9a8b56643512a05b
+            sha256: 8a1bcfadf269e76a518a47918af4169d2bc99c5d084ada4e9973a9aae39a4f87
+    linux64-tinfo6:
+        8.8.1.20191211:
+            url: "https://downloads.haskell.org/~ghc/8.8.2-rc1/ghc-8.8.1.20191211-x86_64-fedora27-linux.tar.xz"
+            content-length: 202495960
+            sha1: 0caf2a7937b6e35ea9c151cde31ba13ea7baee9e
+            sha256: f4d76b6ea00a179f9c961241a3db273feda2d30de0cfde7a0c80c27618215f88
+    windows64:
+        8.8.1.20191211:
+            url: "https://downloads.haskell.org/~ghc/8.8.2-rc1/ghc-8.8.1.20191211-x86_64-unknown-mingw32.tar.xz"
+            content-length: 395979260
+            sha1: c7eb53c367a497a114f9bb9eee39a65da5b2a1a0
+            sha256: 6335b4572ff9cad83ab16bae110bde1666d87ffbe05da219f8d158429153d3ea
+
+resolver: ghc-8.8.1.20191211
+compiler: ghc-8.8.1.20191211
+compiler-check: match-exact
+packages: []

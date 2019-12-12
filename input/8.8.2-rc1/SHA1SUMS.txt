@@ -1,0 +1,12 @@
+3e27ab69ba0a30a63dc0dd3310a59adc6211c703  ./ghc-8.8.1.20191211-x86_64-deb8-linux.tar.xz
+c364eecb037c87a6977f1c11c3b5e7550eb94027  ./ghc-8.8.1.20191211-x86_64-apple-darwin.tar.xz
+c7eb53c367a497a114f9bb9eee39a65da5b2a1a0  ./ghc-8.8.1.20191211-x86_64-unknown-mingw32.tar.xz
+6f9c47c99a8692e657077ffb09a90f3bcef48b9b  ./ghc-8.8.1.20191211-x86_64-deb9-linux-dwarf.tar.xz
+ce66edf0a2c8d99cbf6ca9f990f2a1c2edec0589  ./ghc-8.8.1.20191211-testsuite.tar.xz
+0caf2a7937b6e35ea9c151cde31ba13ea7baee9e  ./ghc-8.8.1.20191211-x86_64-fedora27-linux.tar.xz
+5a5a305a72d62c1758cf56dfac4408d49f1c5afb  ./ghc-8.8.1.20191211-src.tar.xz
+fd357a7a79fdf2071cd68c4bf41be362e31d59c4  ./ghc-8.8.1.20191211-windows-extra-src.tar.xz
+4356e2b29a7ee016f3723e990d17cc702c5da515  ./ghc-8.8.1.20191211-i386-deb9-linux.tar.xz
+1265e3d8a11645330933912a9a8b56643512a05b  ./ghc-8.8.1.20191211-x86_64-deb9-linux.tar.xz
+3e3aa552806d5afd59507f4c7caec7b91dcd9614  ./ghc-8.8.1.20191211-x86_64-centos7-linux.tar.xz
+32bb8d2786c10af52ba3ffa387786aa6bf1d948a  ./ghc-8.8.1.20191211-aarch64-deb9-linux.tar.xz
