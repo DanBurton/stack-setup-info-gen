@@ -166,6 +166,7 @@ discoverDateVer "8.8.1-rc1" = pure "8.8.0.20190721"
 discoverDateVer "8.8.2-rc1" = pure "8.8.1.20191211"
 discoverDateVer "8.10.1-alpha1" = pure "8.10.0.20191121"
 discoverDateVer "8.10.1-alpha2" = pure "8.10.0.20191210"
+discoverDateVer "8.10.1-rc1" = pure "8.10.0.20200123"
 discoverDateVer (GhcDisplayVersion t) = tfail $ "Could not discover ghc version at: " <> t
 
 -- TODO: reduce code duplication
