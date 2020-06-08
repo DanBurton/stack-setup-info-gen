@@ -92,6 +92,9 @@ parseSystemName fileName
       Just arch -> FileForArch arch
       Nothing -> UnrecognizedFileName
 
+suffixIn :: Url -> [Text] -> Bool
+suffixIn (Url url) suffixes = any (`isSuffixOf` url) suffixes
+
 -- TODO: warn about errors, gracefully degrade rather than fatally crash
 loadGhcSetupInfo :: GhcVersion -> GhcDisplayVersion -> CachingStrategy
                  -> IO [GhcSetupInfo]
@@ -103,6 +106,7 @@ loadGhcSetupInfo ghcVersion ghcDisplayVersion strat = do
   logg "loading contentLengths"
   contentLengths <- loadContentLengths ghcDisplayVersion strat
   let parseInfo :: (Url, Sha256Sum) -> IO (Maybe GhcSetupInfo)
+      parseInfo (url, _sha256) | url `suffixIn` [".tar.lz"] = pure Nothing
       parseInfo (url, sha256) = case parseSystemName file of
         ShouldSkipFile -> pure $ Nothing
         FileForArch arch -> do
