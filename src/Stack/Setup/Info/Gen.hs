@@ -39,6 +39,7 @@ shouldSkipFile "x86_64-deb8-linux-dwarf" = True -- not sure how to disambiguate 
 shouldSkipFile "x86_64-deb9-linux-dwarf" = True -- also not sure how to disambiguate from deb9
 shouldSkipFile "x86_64-deb10-linux" = True -- also not sure how to disambiguate from deb9
 shouldSkipFile "armv7-deb9-linux" = True -- Does stack support arm yet?
+shouldSkipFile "x86_64-alpine3.10-linux-integer-simple" = True -- I don't know what to do with this
 shouldSkipFile _ = False
 
 systemNameMapping :: SystemName -> Maybe Arch
