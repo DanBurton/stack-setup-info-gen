@@ -5,6 +5,7 @@ import qualified Network.HTTP.Client as Client
 import Control.Concurrent (threadDelay)
 import qualified Data.Map as Map
 import qualified System.Directory as Directory
+import Prelude (MonadFail(fail))
 
 import Stack.Setup.Info.Types
 

@@ -3,6 +3,7 @@ module Stack.Setup.Info.Types where
 
 import ClassyPrelude
 import Data.Text (splitOn)
+import Prelude (MonadFail(fail))
 
 -- e.g. 8.6.1-beta1
 newtype GhcDisplayVersion = GhcDisplayVersion Text
