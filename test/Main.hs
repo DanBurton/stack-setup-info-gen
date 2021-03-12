@@ -100,3 +100,10 @@ main = hspec $ do
         expectedOutput <- readFileUtf8 "output/stack-ghc-9.0.1-rc1.yaml"
         actualOutput `shouldNotBe` ""
         actualOutput `shouldBe` expectedOutput
+    context "with argument: ghc-9.0.1" $ do
+      it "produces the correct output" $ do
+        actualOutputStr <- capture_ $ mainWithArgs ["ghc-9.0.1"]
+        let actualOutput = pack actualOutputStr
+        expectedOutput <- readFileUtf8 "output/stack-ghc-9.0.1.yaml"
+        actualOutput `shouldNotBe` ""
+        actualOutput `shouldBe` expectedOutput
