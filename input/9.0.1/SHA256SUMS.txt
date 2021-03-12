@@ -1,0 +1,17 @@
+7c1a0154c9e361b75be6cb0305533bb8a3b963c54e8092ffd1759e5710805a5c  ./ghc-9.0.1-x86_64-alpine3.10-linux-integer-simple.tar.xz
+4f4ab118df01cbc7e7c510096deca0cb25025339a97730de0466416296202493  ./ghc-9.0.1-x86_64-unknown-mingw32.tar.xz
+70a9049fc2a2c26274305b12dd20c27476f5e8995163614fe8b20292c6c62a86  ./ghc-9.0.1-testsuite.tar.xz
+c386f220cda8b00a4f23df1cedfa9f5cb49c8be43faea3f4d35ea88a77018785  ./ghc-9.0.1-x86_64-deb9-linux-dwarf.tar.xz
+7edc8d07b07e095cd21c18ddd9d7f7a3ba30d02c7c82381edd392807589a2678  ./ghc-9.0.1-x86_64-unknown-mingw32-integer-simple.tar.xz
+55e27d1907430cfba0f8b6c35c40dbb6f23b0a3518bfa5c9b453ba5cde86030c  ./ghc-9.0.1-windows-extra-src.tar.xz
+6f404f9b88468407b3a9ec5800bcc2d01dd453ef3d63414853b4fbbd4d8df496  ./ghc-9.0.1-armv7-deb9-linux.tar.xz
+9d1eac7b77dbdeac97b4f01910b464d9faed74d9b851a93ac5a197bbd9aa5434  ./ghc-9.0.1-x86_64-deb10-linux-dwarf.tar.xz
+1fb8e27eeec51b4cdbfd1b3c16727adc5f77388d3e925e63799d8232647f316d  ./ghc-9.0.1-x86_64-fedora27-linux.tar.xz
+880e37cea8328401bcfecfe4bb56eb85195f30135b140140b3f24094264f8ba5  ./ghc-9.0.1-i386-deb9-linux.tar.xz
+122d60509147d0117779d275f0215bde2ff63a64cda9d88f149432d0cae71b22  ./ghc-9.0.1-x86_64-apple-darwin.tar.xz
+a5230314e4065f9fcc371dfe519748fd85c825b279abf72a24e09b83578a35f9  ./ghc-9.0.1-src.tar.xz
+9dbc06d8832cae5c9f86dd7b2db729b3748a47beb4fd4b1e62bb66119817c3c1  ./ghc-9.0.1-x86_64-portbld-freebsd.tar.xz
+c253e7eb62cc9da6524c491c85ec8d3727c2ca6035a8653388e636aaa30a2a0f  ./ghc-9.0.1-x86_64-deb10-linux.tar.xz
+4ca6252492f59fe589029fadca4b6f922d6a9f0ff39d19a2bd9886fde4e183d5  ./ghc-9.0.1-x86_64-deb9-linux.tar.xz
+a23750950b6995a66ba59afe82bbc505bd3479d6ab59cf66f45bc6c056e4d87b  ./ghc-9.0.1-x86_64-centos7-linux.tar.xz
+fac7a0bdfc83c05df94024a2d67b8f00a9cd2733b9cb41fb8ad76be399014906  ./ghc-9.0.1-aarch64-deb9-linux.tar.xz
