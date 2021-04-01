@@ -38,6 +38,7 @@ shouldSkipFile "x86_64-deb9-linux-dwarf" = True -- also not sure how to disambig
 shouldSkipFile "x86_64-deb10-linux" = True -- also not sure how to disambiguate from deb9
 shouldSkipFile "x86_64-deb10-linux-dwarf" = True -- also not sure how to disambiguate from deb9
 shouldSkipFile "armv7-deb9-linux" = True -- Does stack support arm yet?
+shouldSkipFile "armv7-deb10-linux" = True -- Does stack support arm yet?
 shouldSkipFile "x86_64-alpine3.10-linux-integer-simple" = True -- I don't know what to do with this
 shouldSkipFile "x86_64-unknown-mingw32-integer-simple" = True -- I don't know what to do with this
 shouldSkipFile _ = False
@@ -57,6 +58,7 @@ systemNameMapping "x86_64-darwin" = Just "macosx"
 systemNameMapping "x86_64-fedora-linux" = Just "linux64-tinfo6"
 systemNameMapping "aarch64-deb8-linux" = Just "linux-aarch64"
 systemNameMapping "aarch64-deb9-linux" = Just "linux-aarch64"
+systemNameMapping "aarch64-deb10-linux" = Just "linux-aarch64"
 systemNameMapping "x86_64-portbld-freebsd" = Just "freebsd64"
 systemNameMapping "x86_64-unknown-freebsd" = Just "freebsd64"
 systemNameMapping "i386-portbld-freebsd" = Just "freebsd32"
@@ -175,6 +177,7 @@ discoverDateVer "8.10.1-alpha2" = pure "8.10.0.20191210"
 discoverDateVer "8.10.1-rc1" = pure "8.10.0.20200123"
 discoverDateVer "9.0.1-alpha1" = pure "9.0.0.20200925"
 discoverDateVer "9.0.1-rc1" = pure "9.0.0.20201227"
+discoverDateVer "9.2.1-alpha1" = pure "9.2.0.20210331"
 discoverDateVer (GhcDisplayVersion t) = tfail $ "Could not discover ghc version at: " <> t
 
 -- TODO: reduce code duplication
