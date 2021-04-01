@@ -1,0 +1,51 @@
+# This file was generated:
+# https://github.com/DanBurton/stack-setup-info-gen/
+setup-info:
+  ghc:
+    linux-aarch64:
+        9.2.0.20210331:
+            url: "https://downloads.haskell.org/ghc/9.2.1-alpha1/ghc-9.2.0.20210331-aarch64-deb10-linux.tar.xz"
+            content-length: 169968380
+            sha1: 6f94cdbf5789cbd38677f128288ee9e598a6adb7
+            sha256: df355e1ed34cf0fef11444299020041f03d6c67f6c5c342db1f76b71fd31e6fe
+    linux32:
+        9.2.0.20210331:
+            url: "https://downloads.haskell.org/ghc/9.2.1-alpha1/ghc-9.2.0.20210331-i386-deb9-linux.tar.xz"
+            content-length: 126630060
+            sha1: 6af6bd842fc79726ec46945a17f643da198a03ed
+            sha256: 58ccac8e89e60b4261dfa8ca0e17d335b99f2a1fecb90322436cfea3bdce2240
+    macosx:
+        9.2.0.20210331:
+            url: "https://downloads.haskell.org/ghc/9.2.1-alpha1/ghc-9.2.0.20210331-x86_64-apple-darwin.tar.xz"
+            content-length: 111473912
+            sha1: 5f57030e15fc77645af2caa76171c2dcfebbe6f3
+            sha256: cfd7d0479ce80607c11cf96fe25d4804783c6ebc623ca9adcb5436e3499c9c5b
+    linux64-gmp4:
+        9.2.0.20210331:
+            url: "https://downloads.haskell.org/ghc/9.2.1-alpha1/ghc-9.2.0.20210331-x86_64-centos7-linux.tar.xz"
+            content-length: 212140112
+            sha1: 2f576ed1dddadac0374c586c09db6339076b853f
+            sha256: 50556cc42be665957f2bd8e5deeceb26e58e88badfa0c99a44117fda2d63200c
+    linux64:
+        9.2.0.20210331:
+            url: "https://downloads.haskell.org/ghc/9.2.1-alpha1/ghc-9.2.0.20210331-x86_64-deb9-linux.tar.xz"
+            content-length: 220941856
+            sha1: b7684352d5a326e57e90523c373589362f7ccb7b
+            sha256: c13613cb6285a689c5b89c93fad5c6c0e95d66c8936338c44d92a1312f507006
+    linux64-tinfo6:
+        9.2.0.20210331:
+            url: "https://downloads.haskell.org/ghc/9.2.1-alpha1/ghc-9.2.0.20210331-x86_64-fedora27-linux.tar.xz"
+            content-length: 127121204
+            sha1: e80375b4c8b6b5e41fe52a26f166dfaa7ff00db0
+            sha256: c7e648ac313c268aaa3a9651b00650da6eb293abfe14e44f44da22a758c233e7
+    windows64:
+        9.2.0.20210331:
+            url: "https://downloads.haskell.org/ghc/9.2.1-alpha1/ghc-9.2.0.20210331-x86_64-unknown-mingw32.tar.xz"
+            content-length: 489286684
+            sha1: 6cab3365ef60d3724b657c02ce2db41a288b8cd4
+            sha256: 3472a39e38ae164a8254d1241c665aa418715a3034240724034f0e09aaff48b3
+
+resolver: ghc-9.2.0.20210331
+compiler: ghc-9.2.0.20210331
+compiler-check: match-exact
+packages: []
