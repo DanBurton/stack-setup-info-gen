@@ -1,0 +1,15 @@
+b2d33f8c7cb9c473e3a126840e60996aa631b235  ./ghc-9.2.0.20210422-src.tar.xz
+9b982ae07e3f2f0954a6fd9fead0e107152b5c6f  ./ghc-9.2.0.20210422-x86_64-fedora27-linux.tar.xz
+ca684a8d7fdbb17acec1e2c8b341576a1749afee  ./ghc-9.2.0.20210422-x86_64-deb9-linux-dwarf.tar.xz
+2c43ad001056e23de89331bb0828acaec185de71  ./ghc-9.2.0.20210422-x86_64-unknown-mingw32.tar.xz
+214e0ccdddfd4c3dc28ee895b7e40226dd148730  ./ghc-9.2.0.20210422-x86_64-centos7-linux.tar.xz
+706fc88b6d4b3c6f78d2acfd6e3da1687a59a336  ./ghc-9.2.0.20210422-x86_64-unknown-freebsd.tar.xz
+c51aa6b27d24cef1a4bebaccc7743764a517849c  ./ghc-9.2.0.20210422-x86_64-apple-darwin.tar.xz
+6a9dd670cd5ef76f055cc59d9af2a44ad7f25f8d  ./ghc-9.2.0.20210422-testsuite.tar.xz
+a01196555028d5ae042aef07642ef12a35bebc5e  ./ghc-9.2.0.20210422-x86_64-deb10-linux.tar.xz
+82e0676e16db26659a50ce0c03c6332f7a4bb046  ./ghc-9.2.0.20210422-x86_64-deb9-linux.tar.xz
+33101cc5526a75613d4f845b2c39d06af1f8070b  ./ghc-9.2.0.20210422-windows-extra-src.tar.xz
+9744a5fb6225e815f14b9f6eb567e0963e9e79ae  ./ghc-9.2.0.20210422-armv7-deb10-linux.tar.xz
+4069d527c5abd1447f666de39c52352a62885c5c  ./ghc-9.2.0.20210422-i386-deb9-linux.tar.xz
+c418ee939e68773e276a0b1da0a6d71cbb32d905  ./ghc-9.2.0.20210422-aarch64-deb10-linux.tar.xz
+93d49dce176cabf38bf5558ce6f835586b8905f1  ./ghc-9.2.0.20210422-x86_64-alpine3.10-linux-integer-simple.tar.xz
