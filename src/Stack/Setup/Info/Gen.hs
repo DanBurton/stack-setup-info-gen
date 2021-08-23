@@ -1,3 +1,4 @@
+{-# LANGUAGE ViewPatterns #-}
 module Stack.Setup.Info.Gen
   ( mainWithArgs
   -- TODO: separate mainWithArgs into yet another module
@@ -41,6 +42,10 @@ shouldSkipFile "armv7-deb9-linux" = True -- Does stack support arm yet?
 shouldSkipFile "armv7-deb10-linux" = True -- Does stack support arm yet?
 shouldSkipFile "x86_64-alpine3.10-linux-integer-simple" = True -- I don't know what to do with this
 shouldSkipFile "x86_64-unknown-mingw32-integer-simple" = True -- I don't know what to do with this
+shouldSkipFile "aarch64-apple-darwin" = True -- idk what stack calls this Arch
+shouldSkipFile (FileName (stripSuffix ".zip" -> Just _)) = True -- don't need .zip when we have .tar.xz ?
+shouldSkipFile (FileName (stripSuffix ".tar.lz" -> Just _)) = True -- don't need .tar.lz when we have .tar.xz ?
+shouldSkipFile (FileName (stripSuffix ".tar.bz2" -> Just _)) = True -- don't need .tar.bz2 when we have .tar.xz ?
 shouldSkipFile _ = False
 
 systemNameMapping :: SystemName -> Maybe Arch
@@ -69,7 +74,7 @@ systemNameMapping _ = Nothing
 stripSurroundings :: GhcDisplayVersion -> GhcVersion -> Url -> FileName
 stripSurroundings gdv@(GhcDisplayVersion ghcDisplayVersion) (GhcVersion ghcVersion) (Url url) =
     FileName
-  . dropSuffixLength ".tar.xz"
+  . tryDropASuffix [".tar.xz"]
   . dropPrefixLength ("/ghc-" <> ghcVersion <> "-")
   . dropPrefixLength ghcDisplayVersion
   . dropPrefixLength (baseBaseUrl gdv)
@@ -81,6 +86,9 @@ stripSurroundings gdv@(GhcDisplayVersion ghcDisplayVersion) (GhcVersion ghcVersi
 
 asSystemName :: FileName -> SystemName
 asSystemName (FileName fn) = SystemName fn
+
+fnText :: FileName -> Text
+fnText (FileName fn) = fn
 
 data SystemNameParse =
     ShouldSkipFile
@@ -129,6 +137,7 @@ loadGhcSetupInfo ghcVersion ghcDisplayVersion strat = do
             }
         UnrecognizedFileName -> tfail $
           "Encountered unrecognized file name: " <> urlText
+            <> "\n (snipped as " <> fnText file <> " )"
         where
           Url urlText = url
           file = stripSurroundings ghcDisplayVersion ghcVersion url
@@ -179,6 +188,7 @@ discoverDateVer "9.0.1-alpha1" = pure "9.0.0.20200925"
 discoverDateVer "9.0.1-rc1" = pure "9.0.0.20201227"
 discoverDateVer "9.2.1-alpha1" = pure "9.2.0.20210331"
 discoverDateVer "9.2.1-alpha2" = pure "9.2.0.20210422"
+discoverDateVer "9.2.1-rc1" = pure "9.2.0.20210821"
 discoverDateVer (GhcDisplayVersion t) = tfail $ "Could not discover ghc version at: " <> t
 
 -- TODO: reduce code duplication

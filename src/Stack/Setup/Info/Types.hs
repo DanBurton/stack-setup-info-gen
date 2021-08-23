@@ -70,5 +70,12 @@ dropPrefixLength prefix t = drop (length prefix) t
 dropSuffixLength :: Text -> Text -> Text
 dropSuffixLength suffix = reverse . dropPrefixLength suffix . reverse
 
+-- not perfect but good enough
+tryDropASuffix :: [Text] -> Text -> Text
+tryDropASuffix [] t = t
+tryDropASuffix (s:ss) t = case stripSuffix s t of
+  Just t' -> t'
+  Nothing -> tryDropASuffix ss t
+
 tfail :: Text -> IO a
 tfail = fail . unpack
