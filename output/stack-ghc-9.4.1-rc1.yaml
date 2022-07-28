@@ -1,0 +1,45 @@
+# This file was generated:
+# https://github.com/DanBurton/stack-setup-info-gen/
+setup-info:
+  ghc:
+    linux-aarch64:
+        9.4.0.20220721:
+            url: "https://downloads.haskell.org/ghc/9.4.1-rc1/ghc-9.4.0.20220721-aarch64-deb10-linux.tar.xz"
+            content-length: 202657168
+            sha1: dff5a83281842b03fc2460ba899c243007f0196a
+            sha256: 4f8ad74aa5711827686373aef118b68feee0a5830265c5dd2df169a3b0c8e56d
+    linux32:
+        9.4.0.20220721:
+            url: "https://downloads.haskell.org/ghc/9.4.1-rc1/ghc-9.4.0.20220721-i386-deb9-linux.tar.xz"
+            content-length: 185354664
+            sha1: f40b851e902604d182748107e68086490b0fade2
+            sha256: e6be1db71a457e6aba9c3d22dd6acf8da8ea80879b45ec06687380c93649554e
+    macosx:
+        9.4.0.20220721:
+            url: "https://downloads.haskell.org/ghc/9.4.1-rc1/ghc-9.4.0.20220721-x86_64-apple-darwin.tar.xz"
+            content-length: 187626320
+            sha1: 93abf7a744580da33464bf64ecc34fd3e07a7af7
+            sha256: 75d6de857de3372ece5283b4ba75bdf918e23cc9fc7a84f009d1542048142a07
+    linux64-gmp4:
+        9.4.0.20220721:
+            url: "https://downloads.haskell.org/ghc/9.4.1-rc1/ghc-9.4.0.20220721-x86_64-centos7-linux.tar.xz"
+            content-length: 177147876
+            sha1: 99d565644597dff381235be779b9ea72550ecdb8
+            sha256: 2fb44e7541c320d0bc53ae95b538b6ab95103dc2d6b79427cdee3642a6e25f0d
+    linux64:
+        9.4.0.20220721:
+            url: "https://downloads.haskell.org/ghc/9.4.1-rc1/ghc-9.4.0.20220721-x86_64-deb9-linux.tar.xz"
+            content-length: 186714844
+            sha1: 426c277fcd9a285f0a62d623b1b387728aaf3003
+            sha256: 225ffa4607305eec5c893d6598713e00cc114e689386cf1b0846f876ef6c36d7
+    windows64:
+        9.4.0.20220721:
+            url: "https://downloads.haskell.org/ghc/9.4.1-rc1/ghc-9.4.0.20220721-x86_64-unknown-mingw32.tar.xz"
+            content-length: 282715336
+            sha1: 4f7c5292eb4b6dbafb3e44769df63c296a15643c
+            sha256: 8bd8d95b384b0f03fc50cc3f7720bbf928d2b44a2e4eec27d6019dfb2f16b3ca
+
+resolver: ghc-9.4.0.20220721
+compiler: ghc-9.4.0.20220721
+compiler-check: match-exact
+packages: []
