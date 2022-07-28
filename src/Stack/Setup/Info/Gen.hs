@@ -38,11 +38,17 @@ shouldSkipFile "x86_64-deb8-linux-dwarf" = True -- not sure how to disambiguate 
 shouldSkipFile "x86_64-deb9-linux-dwarf" = True -- also not sure how to disambiguate from deb9
 shouldSkipFile "x86_64-deb10-linux" = True -- also not sure how to disambiguate from deb9
 shouldSkipFile "x86_64-deb10-linux-dwarf" = True -- also not sure how to disambiguate from deb9
+shouldSkipFile "x86_64-deb11-linux" = True -- at this point I'm just cargo culting myself from years ago
 shouldSkipFile "armv7-deb9-linux" = True -- Does stack support arm yet?
 shouldSkipFile "armv7-deb10-linux" = True -- Does stack support arm yet?
 shouldSkipFile "x86_64-alpine3.10-linux-integer-simple" = True -- I don't know what to do with this
 shouldSkipFile "x86_64-unknown-mingw32-integer-simple" = True -- I don't know what to do with this
+shouldSkipFile "x86_64-alpine3_12-linux-static" = True -- I don't know what to do with this
+shouldSkipFile "x86_64-alpine3_12-linux-static-int_native" = True -- I don't know what to do with this
 shouldSkipFile "aarch64-apple-darwin" = True -- idk what stack calls this Arch
+shouldSkipFile "x86_64-fedora33-linux-dwarf" = True -- I am doing this because I'm lazy
+shouldSkipFile "x86_64-fedora33-linux" = True -- I am doing this because I'm lazy
+shouldSkipFile "x86_64-unknown-mingw32-int_native" = True -- I am diong this because I'm lazy
 shouldSkipFile (FileName (stripSuffix ".zip" -> Just _)) = True -- don't need .zip when we have .tar.xz ?
 shouldSkipFile (FileName (stripSuffix ".tar.lz" -> Just _)) = True -- don't need .tar.lz when we have .tar.xz ?
 shouldSkipFile (FileName (stripSuffix ".tar.bz2" -> Just _)) = True -- don't need .tar.bz2 when we have .tar.xz ?
@@ -189,6 +195,7 @@ discoverDateVer "9.0.1-rc1" = pure "9.0.0.20201227"
 discoverDateVer "9.2.1-alpha1" = pure "9.2.0.20210331"
 discoverDateVer "9.2.1-alpha2" = pure "9.2.0.20210422"
 discoverDateVer "9.2.1-rc1" = pure "9.2.0.20210821"
+discoverDateVer "9.4.1-rc1" = pure "9.4.0.20220721"
 discoverDateVer (GhcDisplayVersion t) = tfail $ "Could not discover ghc version at: " <> t
 
 -- TODO: reduce code duplication
