@@ -1,0 +1,63 @@
+# This file was generated:
+# https://github.com/DanBurton/stack-setup-info-gen/
+setup-info:
+  ghc:
+    linux-aarch64:
+        9.10.0.20240313:
+            url: "https://downloads.haskell.org/ghc/9.10.1-alpha1/ghc-9.10.0.20240313-aarch64-deb10-linux.tar.xz"
+            content-length: 218305256
+            sha1: 81695c01c1febcf2eb5c244b04b73411bf31688a
+            sha256: 10e793e5227185a5e8b166fe1494953cadf975a1d4fbe199e704c709aaede117
+    linux-aarch64:
+        9.10.0.20240313:
+            url: "https://downloads.haskell.org/ghc/9.10.1-alpha1/ghc-9.10.0.20240313-aarch64-deb11-linux.tar.xz"
+            content-length: 217029984
+            sha1: d5c6a804f8635df8e244d13ff0d05b9f5f7b1b11
+            sha256: aa6ab06c99158d733e323c70ac887ca43d02272d6f664e063fa9665c4336fd36
+    linux32:
+        9.10.0.20240313:
+            url: "https://downloads.haskell.org/ghc/9.10.1-alpha1/ghc-9.10.0.20240313-i386-deb10-linux.tar.xz"
+            content-length: 201386768
+            sha1: 0ecd19c432289b41d33d69f4e5347b7281ab9f54
+            sha256: 34a946d4d116b20566d7697067604cd78699731ed33811cc465f13c625bd64ee
+    macosx:
+        9.10.0.20240313:
+            url: "https://downloads.haskell.org/ghc/9.10.1-alpha1/ghc-9.10.0.20240313-x86_64-apple-darwin.tar.xz"
+            content-length: 225674944
+            sha1: 75260d44d936a422b0199e19a7d1f1a9ddadc8d4
+            sha256: ededd5cdade3ec9601c133cae5aec5ce48e18076a774b06c7f1e52c7f20b288d
+    linux64-gmp4:
+        9.10.0.20240313:
+            url: "https://downloads.haskell.org/ghc/9.10.1-alpha1/ghc-9.10.0.20240313-x86_64-centos7-linux.tar.xz"
+            content-length: 189016952
+            sha1: 35fcad06830555316973b3aa726fac7a54313fe7
+            sha256: f0641f4b5236e0dbcf129289d3a96aa2f70fc9c8fefdb17f3ee9960e1381bfde
+    linux64:
+        9.10.0.20240313:
+            url: "https://downloads.haskell.org/ghc/9.10.1-alpha1/ghc-9.10.0.20240313-x86_64-deb9-linux.tar.xz"
+            content-length: 205005844
+            sha1: 8dd382100c4bb515a28182a093bb2e6017792eae
+            sha256: dbbe9846f23e4d9d40ca58baa7076f65152c7a475561b8da8dcc19d956abb114
+    linux64:
+        9.10.0.20240313:
+            url: "https://downloads.haskell.org/ghc/9.10.1-alpha1/ghc-9.10.0.20240313-x86_64-ubuntu18_04-linux.tar.xz"
+            content-length: 224254244
+            sha1: 9d7f940a939fcb604b4c5a75dc92d96e3fa81c39
+            sha256: ba5c1d7cdd54a35050df3872517eac54038fba80220e990927e7290b9e5ad67f
+    linux64:
+        9.10.0.20240313:
+            url: "https://downloads.haskell.org/ghc/9.10.1-alpha1/ghc-9.10.0.20240313-x86_64-ubuntu20_04-linux.tar.xz"
+            content-length: 224704388
+            sha1: 74d6729a9b37cea676a089c89f5a6401ee345a7e
+            sha256: 6fc4298fe60d8910eeef03d7c5eb179677e7822378ec03ad9b7237551a578122
+    windows64:
+        9.10.0.20240313:
+            url: "https://downloads.haskell.org/ghc/9.10.1-alpha1/ghc-9.10.0.20240313-x86_64-unknown-mingw32.tar.xz"
+            content-length: 0
+            sha1: ae25a4d70ade9e11998b4c09e9dfe4bd3c168634
+            sha256: 3dc54cb6db1e40d4f7775dc1871f10e4e502f257eb516420fbb957917064fc2f
+
+resolver: ghc-9.10.0.20240313
+compiler: ghc-9.10.0.20240313
+compiler-check: match-exact
+packages: []

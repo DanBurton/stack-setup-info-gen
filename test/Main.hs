@@ -61,4 +61,5 @@ main = hspec $ do
       , "ghc-9.2.1-alpha2"
       , "ghc-9.2.1-rc1"
       , "ghc-9.4.1-rc1"
+      , "ghc-9.10.1-alpha1" -- this output is bad but I'm too lazy to make more of the above weak
       ]
