@@ -39,16 +39,22 @@ shouldSkipFile "x86_64-deb9-linux-dwarf" = True -- also not sure how to disambig
 shouldSkipFile "x86_64-deb10-linux" = True -- also not sure how to disambiguate from deb9
 shouldSkipFile "x86_64-deb10-linux-dwarf" = True -- also not sure how to disambiguate from deb9
 shouldSkipFile "x86_64-deb11-linux" = True -- at this point I'm just cargo culting myself from years ago
+shouldSkipFile "x86_64-deb12-linux" = True -- at this point I'm just cargo culting myself from years ago
 shouldSkipFile "armv7-deb9-linux" = True -- Does stack support arm yet?
 shouldSkipFile "armv7-deb10-linux" = True -- Does stack support arm yet?
+shouldSkipFile "x86_64-alpine3_12-linux" = True -- I don't know what to do with this
+shouldSkipFile "x86_64-alpine3_18-linux" = True -- I don't know what to do with this
 shouldSkipFile "x86_64-alpine3.10-linux-integer-simple" = True -- I don't know what to do with this
 shouldSkipFile "x86_64-unknown-mingw32-integer-simple" = True -- I don't know what to do with this
 shouldSkipFile "x86_64-alpine3_12-linux-static" = True -- I don't know what to do with this
 shouldSkipFile "x86_64-alpine3_12-linux-static-int_native" = True -- I don't know what to do with this
 shouldSkipFile "aarch64-apple-darwin" = True -- idk what stack calls this Arch
+shouldSkipFile "aarch64-alpine3_18-linux" = True -- idk what stack calls this Arch
 shouldSkipFile "x86_64-fedora33-linux-dwarf" = True -- I am doing this because I'm lazy
 shouldSkipFile "x86_64-fedora33-linux" = True -- I am doing this because I'm lazy
+shouldSkipFile "x86_64-fedora38-linux" = True -- I am doing this because I'm lazy
 shouldSkipFile "x86_64-unknown-mingw32-int_native" = True -- I am diong this because I'm lazy
+shouldSkipFile "x86_64-rocky8-linux" = True -- I am doing this because I'm lazy
 shouldSkipFile (FileName (stripSuffix ".zip" -> Just _)) = True -- don't need .zip when we have .tar.xz ?
 shouldSkipFile (FileName (stripSuffix ".tar.lz" -> Just _)) = True -- don't need .tar.lz when we have .tar.xz ?
 shouldSkipFile (FileName (stripSuffix ".tar.bz2" -> Just _)) = True -- don't need .tar.bz2 when we have .tar.xz ?
@@ -57,10 +63,13 @@ shouldSkipFile _ = False
 systemNameMapping :: SystemName -> Maybe Arch
 systemNameMapping "i386-deb8-linux" = Just "linux32"
 systemNameMapping "i386-deb9-linux" = Just "linux32"
+systemNameMapping "i386-deb10-linux" = Just "linux32"
 systemNameMapping "i386-unknown-mingw32" = Just "windows32"
 systemNameMapping "i386-unknown-mingw32-win10" = Just "windows32"
 systemNameMapping "x86_64-apple-darwin" = Just "macosx"
 systemNameMapping "x86_64-deb9-linux" = Just "linux64"
+systemNameMapping "x86_64-ubuntu18_04-linux" = Just "linux64"
+systemNameMapping "x86_64-ubuntu20_04-linux" = Just "linux64"
 systemNameMapping "x86_64-unknown-mingw32" = Just "windows64"
 systemNameMapping "x86_64-unknown-mingw32-win10" = Just "windows64"
 systemNameMapping "x86_64-fedora27-linux" = Just "linux64-tinfo6"
@@ -70,6 +79,7 @@ systemNameMapping "x86_64-fedora-linux" = Just "linux64-tinfo6"
 systemNameMapping "aarch64-deb8-linux" = Just "linux-aarch64"
 systemNameMapping "aarch64-deb9-linux" = Just "linux-aarch64"
 systemNameMapping "aarch64-deb10-linux" = Just "linux-aarch64"
+systemNameMapping "aarch64-deb11-linux" = Just "linux-aarch64"
 systemNameMapping "x86_64-portbld-freebsd" = Just "freebsd64"
 systemNameMapping "x86_64-unknown-freebsd" = Just "freebsd64"
 systemNameMapping "i386-portbld-freebsd" = Just "freebsd32"
@@ -177,7 +187,11 @@ printCoda (GhcVersion ghcVersion) = do
 discoverContentLength :: Url -> Map Url ContentLength -> IO ContentLength
 discoverContentLength url coll = case lookup url coll of
   Just cl -> pure cl
-  Nothing -> let Url urlt = url in tfail $ "Couldn't find cl for " <> urlt
+  Nothing -> let Url urlt = url in case urlt of
+    (stripSuffix "x86_64-unknown-mingw32.tar.xz" -> Just _) -> do
+      -- TODO: make noise that we are ignoring this
+      return $ ContentLength 0
+    _ -> tfail $ "Couldn't find cl for " <> urlt
 
 -- TODO: better types
 -- TODO: implement this by looking at a SHA file
@@ -196,6 +210,7 @@ discoverDateVer "9.2.1-alpha1" = pure "9.2.0.20210331"
 discoverDateVer "9.2.1-alpha2" = pure "9.2.0.20210422"
 discoverDateVer "9.2.1-rc1" = pure "9.2.0.20210821"
 discoverDateVer "9.4.1-rc1" = pure "9.4.0.20220721"
+discoverDateVer "9.10.1-alpha1" = pure "9.10.0.20240313"
 discoverDateVer (GhcDisplayVersion t) = tfail $ "Could not discover ghc version at: " <> t
 
 -- TODO: reduce code duplication
